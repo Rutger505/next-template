@@ -5,30 +5,10 @@ resource "kubernetes_namespace" "app" {
   }
 }
 
-# Certificate
-resource "kubernetes_manifest" "app" {
-  manifest = {
-    apiVersion = "cert-manager.io/v1"
-    kind       = "Certificate"
-    metadata = {
-      name      = "${var.app_name}-certificate"
-      namespace = var.namespace
-    }
-    spec = {
-      secretName   = "${var.app_name}-tls"
-      duration     = "2160h" # 90d
-      renewBefore  = "360h" # 15d
-      dnsNames     = [var.ingress_host]
-      issuerRef = {
-        name = var.certificate_cluster_issuer
-        kind = "ClusterIssuer"
-      }
-    }
-  }
-}
-
 # ConfigMap
 resource "kubernetes_config_map" "app" {
+  depends_on = [kubernetes_namespace.app]
+
   metadata {
     name      = "${var.app_name}-config"
     namespace = var.namespace
@@ -40,6 +20,8 @@ resource "kubernetes_config_map" "app" {
 
 # Secret
 resource "kubernetes_secret" "app" {
+  depends_on = [kubernetes_namespace.app]
+
   metadata {
     name      = "${var.app_name}-secret"
     namespace = var.namespace
@@ -51,6 +33,12 @@ resource "kubernetes_secret" "app" {
 
 # Deployment
 resource "kubernetes_deployment" "app" {
+  depends_on = [
+    kubernetes_namespace.app,
+    kubernetes_config_map.app,
+    kubernetes_secret.app
+  ]
+
   metadata {
     name      = "${var.app_name}-deployment"
     namespace = var.namespace
@@ -75,11 +63,20 @@ resource "kubernetes_deployment" "app" {
       spec {
         automount_service_account_token = false
 
-        // TODO recource limits
-
         container {
           name  = var.app_name
           image = "${var.image_repository}:${var.image_tag}"
+
+          resources {
+            limits = {
+              cpu    = "1000m"    # 1 CPU core
+              memory = "1024Mi"   # 1GB memory
+            }
+            requests = {
+              cpu    = "250m"     # 0.25 CPU core
+              memory = "512Mi"    # 512MB memory
+            }
+          }
 
           port {
             container_port = var.app_port
@@ -104,6 +101,8 @@ resource "kubernetes_deployment" "app" {
 
 # Service
 resource "kubernetes_service" "app" {
+  depends_on = [kubernetes_namespace.app]
+
   metadata {
     name      = "${var.app_name}-service"
     namespace = var.namespace
@@ -124,8 +123,38 @@ resource "kubernetes_service" "app" {
   }
 }
 
+# Certificate
+resource "kubernetes_manifest" "app" {
+  depends_on = [kubernetes_namespace.app]
+
+  manifest = {
+    apiVersion = "cert-manager.io/v1"
+    kind       = "Certificate"
+    metadata = {
+      name      = "${var.app_name}-certificate"
+      namespace = var.namespace
+    }
+    spec = {
+      secretName   = "${var.app_name}-tls"
+      duration     = "2160h" # 90d
+      renewBefore  = "360h" # 15d
+      dnsNames     = [var.ingress_host]
+      issuerRef = {
+        name = var.certificate_cluster_issuer
+        kind = "ClusterIssuer"
+      }
+    }
+  }
+}
+
 # Ingress
 resource "kubernetes_ingress_v1" "app" {
+  depends_on = [
+    kubernetes_namespace.app,
+    kubernetes_service.app,
+    kubernetes_manifest.app
+  ]
+
   metadata {
     name      = "${var.app_name}-ingress"
     namespace = var.namespace
