@@ -123,36 +123,13 @@ resource "kubernetes_service" "app" {
   }
 }
 
-# Certificate
-resource "kubernetes_manifest" "app" {
-  depends_on = [kubernetes_namespace.app]
 
-  manifest = {
-    apiVersion = "cert-manager.io/v1"
-    kind       = "Certificate"
-    metadata = {
-      name      = "${var.app_name}-certificate"
-      namespace = var.namespace
-    }
-    spec = {
-      secretName   = "${var.app_name}-tls"
-      duration     = "2160h" # 90d
-      renewBefore  = "360h" # 15d
-      dnsNames     = [var.ingress_host]
-      issuerRef = {
-        name = var.certificate_cluster_issuer
-        kind = "ClusterIssuer"
-      }
-    }
-  }
-}
 
 # Ingress
 resource "kubernetes_ingress_v1" "app" {
   depends_on = [
     kubernetes_namespace.app,
     kubernetes_service.app,
-    kubernetes_manifest.app
   ]
 
   metadata {
@@ -185,6 +162,33 @@ resource "kubernetes_ingress_v1" "app" {
             }
           }
         }
+      }
+    }
+  }
+}
+
+# Certificate
+resource "kubernetes_manifest" "app" {
+  depends_on = [
+    kubernetes_namespace.app,
+    kubernetes_ingress_v1.app
+  ]
+
+  manifest = {
+    apiVersion = "cert-manager.io/v1"
+    kind       = "Certificate"
+    metadata = {
+      name      = "${var.app_name}-certificate"
+      namespace = var.namespace
+    }
+    spec = {
+      secretName   = "${var.app_name}-tls"
+      duration     = "2160h" # 90d
+      renewBefore  = "360h" # 15d
+      dnsNames     = [var.ingress_host]
+      issuerRef = {
+        name = var.certificate_cluster_issuer
+        kind = "ClusterIssuer"
       }
     }
   }

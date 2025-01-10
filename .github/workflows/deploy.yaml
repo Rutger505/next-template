@@ -135,6 +135,7 @@ jobs:
           tofu import kubernetes_config_map.app ${{ steps.config.outputs.namespace }}/${{ env.APP_NAME }}-config || true
           tofu import kubernetes_secret.app ${{ steps.config.outputs.namespace }}/${{ env.APP_NAME }}-secret || true
           tofu import kubernetes_ingress_v1.app ${{ steps.config.outputs.namespace }}/${{ env.APP_NAME }}-ingress || true
+          tofu import kubernetes_manifest.app ${{ steps.config.outputs.namespace }}/${{ env.APP_NAME }}-certificate || true
 
       - name: OpenTofu Plan
         working-directory: ./deploy
