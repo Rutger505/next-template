@@ -101,13 +101,6 @@ jobs:
       - name: Setup Kubeconfig
         run: |
           mkdir -p ~/.kube
-
-          echo "Current directory"
-          echo $PWD
-
-          echo "Home directory"
-          echo $HOME
-
           echo "${{ secrets.KUBECONFIG }}" > ~/.kube/config
           chmod 600 ~/.kube/config
 
