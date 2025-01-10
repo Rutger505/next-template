@@ -132,7 +132,6 @@ jobs:
           tofu plan -no-color -out=tfplan
 
       - name: OpenTofu Apply
-        if: ${{ !github.event.pull_request || (github.event.pull_request && github.actor == 'dependabot[bot]') }}
         working-directory: ./deploy
         run: tofu apply -auto-approve tfplan
 
