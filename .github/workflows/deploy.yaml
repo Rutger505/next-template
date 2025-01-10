@@ -13,6 +13,10 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
+env:
+  APP_NAME: next-template
+  DOCKER_IMAGE: rutger505/next-template
+
 jobs:
   build-docker-image:
     name: Build Docker image
@@ -94,15 +98,10 @@ jobs:
           echo "Setting namespace to $NAMESPACE"
           echo "namespace=$NAMESPACE" >> $GITHUB_OUTPUT
 
-      - name: Install Helm
-        uses: azure/setup-helm@v3
+      - name: Setup OpenTofu
+        uses: opentofu/setup-opentofu@v1
         with:
-          version: 'v3.16.2'
-
-      - name: Set up kubectl
-        uses: azure/setup-kubectl@v4
-        with:
-          version: 'v1.31.0'
+          tofu_version: "1.9.0"
 
       - name: Set up Kubernetes context
         uses: azure/k8s-set-context@v4
@@ -110,20 +109,23 @@ jobs:
           method: kubeconfig
           kubeconfig: ${{ secrets.KUBECONFIG }}
 
-      - name: Process values file with envsubst
-        env:
-          DOCKER_TAG: ${{ needs.build-docker-image.outputs.tag }}
-          INGRESS_HOST: ${{ steps.config.outputs.ingress_host }}
-          LETSENCRYPT_ENV: ${{ steps.config.outputs.letsencrypt_env }}
-        run: |
-          envsubst < ./k8s/values.yaml > ./k8s/processed-values.yaml
+      - name: OpenTofu Init
+        working-directory: ./deploy
+        run: tofu init
 
-      - name: Deploy Helm Chart
+      - name: OpenTofu Plan
+        working-directory: ./deploy
+        env:
+          TF_VAR_app_name: ${{ env.APP_NAME }}
+          TF_VAR_namespace: ${{ steps.config.outputs.namespace }}
+          TF_VAR_image_repository: ${{ env.DOCKER_IMAGE }}
+          TF_VAR_image_tag: ${{ needs.build-docker-image.outputs.tag }}
+          TF_VAR_ingress_host: ${{ steps.config.outputs.ingress_host }}
+          TF_VAR_certificate_cluster_issuer: letsencrypt-${{ steps.config.outputs.letsencrypt_env }}
         run: |
-          helm upgrade --install  \
-            ${{ env.APP_NAME }}-${{ matrix.environment }}  \
-            ./k8s \
-            -f ./k8s/processed-values.yaml \
-            --namespace ${{ steps.config.outputs.namespace }} \
-            --create-namespace \
-            --wait
+          tofu plan -no-color -out=tfplan
+
+      - name: OpenTofu Apply
+        if: ${{ !github.event.pull_request || (github.event.pull_request && github.actor == 'dependabot[bot]') }}
+        working-directory: ./deploy
+        run: tofu apply -auto-approve tfplan
