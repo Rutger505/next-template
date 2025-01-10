@@ -6,12 +6,12 @@ Next.js template for my personal needs.
 
 | Feature                                                                              | Status |
 |--------------------------------------------------------------------------------------|--------|
-| ESLint                                                                               | ❌️     |
-| Prettier                                                                             | ❌️     |
+| Next.js                                                                              | ✅      |
+| TailwindCSS                                                                          | ✅      |
+| TypeScript                                                                           | ✅      |
+| ESLint                                                                               | ✅      |
+| Prettier                                                                             | ✅      |
 | SonarQube                                                                            | ❌️     |
-| Next.js                                                                              | ❌️     |
-| TailwindCSS                                                                          | ❌️     |
-| TypeScript                                                                           | ❌️     |
 | tRPC                                                                                 | ❌️     |
 | Drizzle                                                                              | ❌️     |
 | Authenticatie - With utility functions (Decide between next-auth, auth.js and lucia) | ❌️     |
