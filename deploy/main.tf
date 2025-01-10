@@ -3,10 +3,6 @@ resource "kubernetes_namespace" "app" {
   metadata {
     name = "next-template-pr-1"
   }
-
-  lifecycle {
-    ignore_errors = true
-  }
 }
 
 # ConfigMap

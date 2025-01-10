@@ -3,11 +3,11 @@ name: Deploy
 on:
   push:
     tags:
-      - '*'
+      - "*"
   pull_request:
-    types: [ opened, synchronize, reopened ]
+    types: [opened, synchronize, reopened]
     branches:
-      - '*'
+      - "*"
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -39,7 +39,7 @@ jobs:
           else
             TAG=$GITHUB_SHA
           fi
-          
+
           echo "Setting tag to $TAG"
           echo "tag=$TAG" >> $GITHUB_OUTPUT
 
@@ -87,17 +87,17 @@ jobs:
             INGRESS_HOST=${{ github.sha }}.${{ vars.BASE_DOMAIN }}
             LETSENCRYPT_ENV="staging"
           fi
-          
+
           echo "Setting ingress host to $INGRESS_HOST"
           echo "ingress_host=$INGRESS_HOST" >> $GITHUB_OUTPUT
-          
+
           echo "Setting letsencrypt_env to $LETSENCRYPT_ENV"
           echo "letsencrypt_env=$LETSENCRYPT_ENV" >> $GITHUB_OUTPUT
-          
+
           NAMESPACE=$APP_NAME-${{ matrix.environment }}
           echo "Setting namespace to $NAMESPACE"
           echo "namespace=$NAMESPACE" >> $GITHUB_OUTPUT
-          
+
       - name: Setup Kubeconfig
         run: |
           echo "${{ secrets.KUBECONFIG }}" > kubeconfig
@@ -114,10 +114,15 @@ jobs:
         with:
           tofu_version: "1.9.0"
 
-
       - name: OpenTofu Init
         working-directory: ./deploy
         run: tofu init
+
+      - name: Import existing namespace
+        working-directory: ./deploy
+        run: |
+          # Try to import the namespace if it exists, suppress errors if it doesn't
+          tofu import kubernetes_namespace.app ${{ steps.config.outputs.namespace }} || true
 
       - name: OpenTofu Plan
         working-directory: ./deploy
