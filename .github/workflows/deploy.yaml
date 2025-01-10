@@ -97,17 +97,23 @@ jobs:
           NAMESPACE=$APP_NAME-${{ matrix.environment }}
           echo "Setting namespace to $NAMESPACE"
           echo "namespace=$NAMESPACE" >> $GITHUB_OUTPUT
+          
+      - name: Setup Kubeconfig
+        run: |
+          echo "${{ secrets.KUBECONFIG }}" > kubeconfig
+          chmod 600 kubeconfig
+
+      - name: Set up Kubernetes context
+        uses: azure/k8s-set-context@v4
+        with:
+          method: kubeconfig
+          kubeconfig: ./kubeconfig
 
       - name: Setup OpenTofu
         uses: opentofu/setup-opentofu@v1
         with:
           tofu_version: "1.9.0"
 
-      - name: Set up Kubernetes context
-        uses: azure/k8s-set-context@v4
-        with:
-          method: kubeconfig
-          kubeconfig: ${{ secrets.KUBECONFIG }}
 
       - name: OpenTofu Init
         working-directory: ./deploy
@@ -129,3 +135,7 @@ jobs:
         if: ${{ !github.event.pull_request || (github.event.pull_request && github.actor == 'dependabot[bot]') }}
         working-directory: ./deploy
         run: tofu apply -auto-approve tfplan
+
+      - name: Cleanup
+        if: always()
+        run: rm -f kubeconfig
