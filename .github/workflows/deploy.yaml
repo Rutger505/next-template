@@ -100,14 +100,16 @@ jobs:
 
       - name: Setup Kubeconfig
         run: |
-          echo "${{ secrets.KUBECONFIG }}" > kubeconfig
-          chmod 600 kubeconfig
+          mkdir -p ~/.kube
 
-      - name: Set up Kubernetes context
-        uses: azure/k8s-set-context@v4
-        with:
-          method: kubeconfig
-          kubeconfig: ./kubeconfig
+          echo "Current directory"
+          echo $PWD
+
+          echo "Home directory"
+          echo $HOME
+
+          echo "${{ secrets.KUBECONFIG }}" > ~/.kube/config
+          chmod 600 ~/.kube/config
 
       - name: Setup OpenTofu
         uses: opentofu/setup-opentofu@v1
@@ -130,4 +132,4 @@ jobs:
 
       - name: Cleanup
         if: always()
-        run: rm -f kubeconfig
+        run: rm -f ~/.kube/config
