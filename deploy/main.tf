@@ -65,7 +65,7 @@ resource "kubernetes_deployment" "app" {
 
         container {
           name  = "next-template"
-          image = "rutger505/next-template:latest"
+          image = "rutger505/next-template:c481df5add99e46f3cbd18beb8b30581f278567f"
 
           resources {
             limits = {
@@ -141,12 +141,12 @@ resource "kubernetes_ingress_v1" "app" {
     ingress_class_name = "traefik"
 
     tls {
-      hosts       = ["https://hello.com"]
+      hosts       = ["helloasdfasdfsadf.com"]
       secret_name = "next-template-tls"
     }
 
     rule {
-      host = "https://hello.com"
+      host = "helloasdfasdfasdf.com"
 
       http {
         path {
@@ -185,7 +185,7 @@ resource "kubernetes_manifest" "app" {
       secretName   = "next-template-tls"
       duration     = "2160h" # 90d
       renewBefore  = "360h" # 15d
-      dnsNames     = ["https://hello.com"]
+      dnsNames     = ["hello.com"]
       issuerRef = {
         name = "staging"
         kind = "ClusterIssuer"
