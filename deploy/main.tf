@@ -1,5 +1,12 @@
+# Namespace
+resource "kubernetes_namespace" "app" {
+  metadata {
+    name = "next-template-pr-1"
+  }
+}
+
 # Certificate
-resource "kubernetes_manifest" "certificate" {
+resource "kubernetes_manifest" "app" {
   manifest = {
     apiVersion = "cert-manager.io/v1"
     kind       = "Certificate"
@@ -21,7 +28,7 @@ resource "kubernetes_manifest" "certificate" {
 }
 
 # ConfigMap
-resource "kubernetes_config_map" "app_config" {
+resource "kubernetes_config_map" "app" {
   metadata {
     name      = "${var.app_name}-config"
     namespace = var.namespace
@@ -32,7 +39,7 @@ resource "kubernetes_config_map" "app_config" {
 }
 
 # Secret
-resource "kubernetes_secret" "app_secret" {
+resource "kubernetes_secret" "app" {
   metadata {
     name      = "${var.app_name}-secret"
     namespace = var.namespace
@@ -80,13 +87,13 @@ resource "kubernetes_deployment" "app" {
 
           env_from {
             config_map_ref {
-              name = kubernetes_config_map.app_config.metadata[0].name
+              name = kubernetes_config_map.app.metadata[0].name
             }
           }
 
           env_from {
             secret_ref {
-              name = kubernetes_secret.app_secret.metadata[0].name
+              name = kubernetes_secret.app.metadata[0].name
             }
           }
         }
