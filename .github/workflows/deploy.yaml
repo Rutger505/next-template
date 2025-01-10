@@ -114,44 +114,18 @@ jobs:
         with:
           tofu_version: "1.9.0"
 
-      - name: OpenTofu Init
-        working-directory: ./deploy
-        run: tofu init
-
-      - name: Import existing namespace
-        working-directory: ./deploy
-        env:
-          TF_VAR_app_name: ${{ env.APP_NAME }}
-          TF_VAR_namespace: ${{ steps.config.outputs.namespace }}
-          TF_VAR_image_repository: ${{ env.DOCKER_IMAGE }}
-          TF_VAR_image_tag: ${{ needs.build-docker-image.outputs.tag }}
-          TF_VAR_ingress_host: ${{ steps.config.outputs.ingress_host }}
-          TF_VAR_certificate_cluster_issuer: letsencrypt-${{ steps.config.outputs.letsencrypt_env }}
-        run: |
-          # Try to import the namespace if it exists, suppress errors if it doesn't
-          tofu import kubernetes_namespace.app ${{ steps.config.outputs.namespace }} || true
-          tofu import kubernetes_deployment.app ${{ steps.config.outputs.namespace }}/${{ env.APP_NAME }}-deployment || true
-          tofu import kubernetes_service.app ${{ steps.config.outputs.namespace }}/${{ env.APP_NAME }}-service || true
-          tofu import kubernetes_config_map.app ${{ steps.config.outputs.namespace }}/${{ env.APP_NAME }}-config || true
-          tofu import kubernetes_secret.app ${{ steps.config.outputs.namespace }}/${{ env.APP_NAME }}-secret || true
-          tofu import kubernetes_ingress_v1.app ${{ steps.config.outputs.namespace }}/${{ env.APP_NAME }}-ingress || true
-          tofu import kubernetes_manifest.app ${{ steps.config.outputs.namespace }}/${{ env.APP_NAME }}-certificate || true
-
-      - name: OpenTofu Plan
-        working-directory: ./deploy
-        env:
-          TF_VAR_app_name: ${{ env.APP_NAME }}
-          TF_VAR_namespace: ${{ steps.config.outputs.namespace }}
-          TF_VAR_image_repository: ${{ env.DOCKER_IMAGE }}
-          TF_VAR_image_tag: ${{ needs.build-docker-image.outputs.tag }}
-          TF_VAR_ingress_host: ${{ steps.config.outputs.ingress_host }}
-          TF_VAR_certificate_cluster_issuer: letsencrypt-${{ steps.config.outputs.letsencrypt_env }}
-        run: |
-          tofu plan -no-color -out=tfplan
-
       - name: OpenTofu Apply
         working-directory: ./deploy
-        run: tofu apply -auto-approve tfplan
+        env:
+          TF_VAR_app_name: ${{ env.APP_NAME }}
+          TF_VAR_namespace: ${{ steps.config.outputs.namespace }}
+          TF_VAR_image_repository: ${{ env.DOCKER_IMAGE }}
+          TF_VAR_image_tag: ${{ needs.build-docker-image.outputs.tag }}
+          TF_VAR_ingress_host: ${{ steps.config.outputs.ingress_host }}
+          TF_VAR_certificate_cluster_issuer: letsencrypt-${{ steps.config.outputs.letsencrypt_env }}
+        run: |
+          tofu init
+          tofu apply -auto-approve
 
       - name: Cleanup
         if: always()
