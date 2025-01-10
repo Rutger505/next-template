@@ -125,7 +125,8 @@ jobs:
           TF_VAR_certificate_cluster_issuer: letsencrypt-${{ steps.config.outputs.letsencrypt_env }}
         run: |
           tofu init
-          tofu apply -auto-approve
+          tofu plan -out=tfplan
+          tofu apply -auto-approve tfplan
 
       - name: Cleanup
         if: always()
