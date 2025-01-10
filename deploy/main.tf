@@ -10,8 +10,8 @@ resource "kubernetes_config_map" "app" {
   depends_on = [kubernetes_namespace.app]
 
   metadata {
-    name      = "${var.app_name}-config"
-    namespace = var.namespace
+    name      = "next-template-config"
+    namespace = "next-template-pr-1"
   }
 
   data = {
@@ -23,8 +23,8 @@ resource "kubernetes_secret" "app" {
   depends_on = [kubernetes_namespace.app]
 
   metadata {
-    name      = "${var.app_name}-secret"
-    namespace = var.namespace
+    name      = "next-template-secret"
+    namespace = "next-template-pr-1"
   }
 
   data = {
@@ -40,8 +40,8 @@ resource "kubernetes_deployment" "app" {
   ]
 
   metadata {
-    name      = "${var.app_name}-deployment"
-    namespace = var.namespace
+    name      = "next-template-deployment"
+    namespace = "next-template-pr-1"
   }
 
   spec {
@@ -49,14 +49,14 @@ resource "kubernetes_deployment" "app" {
 
     selector {
       match_labels = {
-        app = "${var.app_name}-deployment"
+        app = "next-template-deployment"
       }
     }
 
     template {
       metadata {
         labels = {
-          app = "${var.app_name}-deployment"
+          app = "next-template-deployment"
         }
       }
 
@@ -64,8 +64,8 @@ resource "kubernetes_deployment" "app" {
         automount_service_account_token = false
 
         container {
-          name  = var.app_name
-          image = "${var.image_repository}:${var.image_tag}"
+          name  = "next-template"
+          image = "rutger505/next-template:latest"
 
           resources {
             limits = {
@@ -79,7 +79,7 @@ resource "kubernetes_deployment" "app" {
           }
 
           port {
-            container_port = var.app_port
+            container_port = 3000
           }
 
           env_from {
@@ -104,18 +104,18 @@ resource "kubernetes_service" "app" {
   depends_on = [kubernetes_namespace.app]
 
   metadata {
-    name      = "${var.app_name}-service"
-    namespace = var.namespace
+    name      = "next-template-service"
+    namespace = "next-template-pr-1"
   }
 
   spec {
     selector = {
-      app = "${var.app_name}-deployment"
+      app = "next-template-deployment"
     }
 
     port {
       port        = 80
-      target_port = var.app_port
+      target_port = 3000
       protocol    = "TCP"
     }
 
@@ -133,20 +133,20 @@ resource "kubernetes_ingress_v1" "app" {
   ]
 
   metadata {
-    name      = "${var.app_name}-ingress"
-    namespace = var.namespace
+    name      = "next-template-ingress"
+    namespace = "next-template-pr-1"
   }
 
   spec {
     ingress_class_name = "traefik"
 
     tls {
-      hosts       = [var.ingress_host]
-      secret_name = "${var.app_name}-tls"
+      hosts       = ["https://hello.com"]
+      secret_name = "next-template-tls"
     }
 
     rule {
-      host = var.ingress_host
+      host = "https://hello.com"
 
       http {
         path {
@@ -178,16 +178,16 @@ resource "kubernetes_manifest" "app" {
     apiVersion = "cert-manager.io/v1"
     kind       = "Certificate"
     metadata = {
-      name      = "${var.app_name}-certificate"
-      namespace = var.namespace
+      name      = "next-template-certificate"
+      namespace = "next-template-pr-1"
     }
     spec = {
-      secretName   = "${var.app_name}-tls"
+      secretName   = "next-template-tls"
       duration     = "2160h" # 90d
       renewBefore  = "360h" # 15d
-      dnsNames     = [var.ingress_host]
+      dnsNames     = ["https://hello.com"]
       issuerRef = {
-        name = var.certificate_cluster_issuer
+        name = "staging"
         kind = "ClusterIssuer"
       }
     }
