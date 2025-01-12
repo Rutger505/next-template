@@ -1,3 +1,8 @@
+variable "postgres_backend_connection_string" {
+  description = "Postgres connection string for the backend"
+  type        = string
+}
+
 # variable "app_name" {
 #   description = "Name of the application"
 #   type        = string

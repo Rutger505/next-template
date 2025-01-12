@@ -112,6 +112,7 @@ jobs:
       - name: OpenTofu Apply
         working-directory: ./deploy
         env:
+          TF_VAR_postgres_backend_connection_string: ${{ secrets.POSTGRES_BACKEND_CONNECTION_STRING }}
           TF_VAR_app_name: ${{ env.APP_NAME }}
           TF_VAR_namespace: ${{ steps.config.outputs.namespace }}
           TF_VAR_image_repository: ${{ env.DOCKER_IMAGE }}
