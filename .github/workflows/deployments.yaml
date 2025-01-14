@@ -19,7 +19,6 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       environment: ${{ steps.config.outputs.environment }}
-      namespace: ${{ steps.config.outputs.namespace }}
       is_production: ${{ steps.config.outputs.is_production }}
       image: ${{ steps.config.outputs.image }}
       hostname: ${{ steps.config.outputs.hostname }}
