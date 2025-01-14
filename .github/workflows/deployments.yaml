@@ -112,6 +112,7 @@ jobs:
           TF_VAR_certificate_issuer: ${{ needs.configure.outputs.letsencrypt_env }}
         run: |
           tofu init
+          tofu workspace select -or-create ${{ needs.configure.outputs.environment }}
           tofu plan -input=false -out=tfplan
           tofu apply -input=false -auto-approve tfplan
 
@@ -141,5 +142,8 @@ jobs:
           TF_VAR_certificate_issuer: ${{ needs.configure.outputs.letsencrypt_env }}
         run: |
           tofu init
+          tofu workspace select ${{ needs.configure.outputs.environment }}
           tofu plan -input=false -destroy -out=tfplan 
           tofu apply -input=false -auto-approve tfplan
+          tofu workspace select default
+          tofu workspace delete ${{ needs.configure.outputs.environment }}
