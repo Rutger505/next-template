@@ -163,28 +163,38 @@ jobs:
             exit 1
           fi
 
-      - name: Set up kubectl
-        uses: azure/setup-kubectl@v4
-        with:
-          version: "v1.31.0"
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
-      - name: Kubernetes Set Context
-        uses: Azure/k8s-set-context@v4.0.1
-        with:
-          method: kubeconfig
-          kubeconfig: ${{ secrets.KUBECONFIG }}
-
-      - name: Delete namespace
+      - name: Setup Kubeconfig
         run: |
-          NAMESPACE=${{ steps.config.outputs.namespace }}
+          mkdir -p ~/.kube
+          echo "${{ secrets.KUBECONFIG }}" > ~/.kube/config
+          chmod 600 ~/.kube/config
 
-          echo "Deleting namespace: $NAMESPACE"
-          if kubectl get namespace "$NAMESPACE" 2>/dev/null; then
-            kubectl delete namespace "$NAMESPACE" --timeout=5m
-            echo "✅ Namespace $NAMESPACE deleted successfully"
-          else
-            echo "⚠️ Namespace $NAMESPACE not found"
-          fi
+      - name: Setup OpenTofu
+        uses: opentofu/setup-opentofu@v1
+        with:
+          tofu_version: "1.9.0"
+
+      - name: OpenTofu Destroy
+        working-directory: ./deploy
+        env:
+          TF_VAR_app_name: ${{ env.APP_NAME }}
+          TF_VAR_namespace: ${{ steps.config.outputs.namespace }}
+          # Set empty/dummy values for required variables
+          TF_VAR_image_repository: dummy
+          TF_VAR_image_tag: dummy
+          TF_VAR_ingress_host: dummy
+          TF_VAR_certificate_cluster_issuer: dummy
+        run: |
+          tofu init
+          tofu plan -destroy -out=tfplan
+          tofu apply -auto-approve tfplan
+
+      - name: Cleanup Kubeconfig
+        if: always()
+        run: rm -f ~/.kube/config
 
       - name: Comment cleanup status
         if: always()
