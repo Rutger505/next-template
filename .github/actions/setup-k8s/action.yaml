@@ -15,6 +15,7 @@ runs:
   steps:
     - name: Setup Kubeconfig
       shell: bash
+      id: setup
       run: |
         mkdir -p ~/.kube
         echo "${{ inputs.kubeconfig }}" > ~/.kube/config
@@ -25,7 +26,10 @@ runs:
       with:
         tofu_version: ${{ inputs.tofu-version }}
 
-    - name: Cleanup Kubeconfig
-      if: always()
-      shell: bash
-      run: rm -f ~/.kube/config
+  post:
+    using: composite
+    steps:
+      - name: Cleanup Kubeconfig
+        if: always()
+        shell: bash
+        run: rm -f ~/.kube/config
