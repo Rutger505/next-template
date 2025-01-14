@@ -15,15 +15,55 @@ concurrency:
 
 env:
   APP_NAME: next-template
-  DOCKER_IMAGE: rutger505/next-template
+  IMAGE_REPOSITORY: rutger505/next-template
 
 jobs:
+  configure:
+    name: Generate Configuration
+    runs-on: ubuntu-latest
+    outputs:
+      environment: ${{ steps.config.outputs.environment }}
+      namespace: ${{ steps.config.outputs.namespace }}
+      is_production: ${{ steps.config.outputs.is_production }}
+      image: ${{ steps.config.outputs.image }}
+      hostname: ${{ steps.config.outputs.hostname }}
+      letsencrypt_env: ${{ steps.config.outputs.letsencrypt_env }}
+
+    steps:
+      - name: Generate configuration
+        id: config
+        run: |
+          if [[ $GITHUB_REF == refs/tags/* ]]; then
+            IS_PRODUCTION="true"
+            TAG=$GITHUB_REF_NAME
+            ENVIRONMENT="production"
+            INGRESS_HOST=${{ vars.BASE_DOMAIN }}
+            LETSENCRYPT_ENV="production"
+          else
+            IS_PRODUCTION="false"
+            TAG=$GITHUB_SHA
+            ENVIRONMENT="pr-${{ github.event.pull_request.number }}"
+            HOSTNAME=${{ github.sha }}.${{ vars.BASE_DOMAIN }}
+            LETSENCRYPT_ENV="staging"
+          fi
+
+          NAMESPACE=${{ env.APP_NAME }}-$ENVIRONMENT
+
+          echo "environment=$ENVIRONMENT" >> $GITHUB_OUTPUT
+          echo "namespace=$NAMESPACE" >> $GITHUB_OUTPUT
+          echo "is_production=$IS_PRODUCTION" >> $GITHUB_OUTPUT
+          echo "image=$IMAGE_REPOSITORY:$TAG" >> $GITHUB_OUTPUT
+          echo "hostname=$HOSTNAME" >> $GITHUB_OUTPUT
+          echo "letsencrypt_env=$LETSENCRYPT_ENV" >> $GITHUB_OUTPUT
+
+          echo "Generated configuration:"
+          echo $GITHUB_OUTPUT
+
   build-docker-image:
     if: github.event.action != 'closed'
     name: Build Docker image
+    needs: [configure]
     runs-on: ubuntu-latest
-    outputs:
-      tag: ${{ steps.config.outputs.tag }}
 
     steps:
       - name: Checkout repository
@@ -31,18 +71,6 @@ jobs:
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
-
-      - name: Generate build config
-        id: config
-        run: |
-          if [[ $GITHUB_REF == refs/tags/* ]]; then
-            TAG=$GITHUB_REF_NAME
-          else
-            TAG=$GITHUB_SHA
-          fi
-
-          echo "Setting tag to $TAG"
-          echo "tag=$TAG" >> $GITHUB_OUTPUT
 
       - name: Login to Docker Hub
         uses: docker/login-action@v3
@@ -55,50 +83,23 @@ jobs:
         with:
           context: .
           push: true
-          tags: ${{ env.DOCKER_IMAGE }}:${{ steps.config.outputs.tag }}
-          cache-from: type=registry,ref=${{ env.DOCKER_IMAGE }}:cache
-          cache-to: type=registry,ref=${{ env.DOCKER_IMAGE }}:cache,mode=max
+          tags: ${{ needs.configure.outputs.image }}
+          cache-from: type=registry,ref=${{ env.IMAGE_REPOSITORY }}:cache
+          cache-to: type=registry,ref=${{ env.IMAGE_REPOSITORY }}:cache,mode=max
 
   deploy-to-kubernetes:
     if: github.event.action != 'closed'
     name: Deploy to Kubernetes
+    needs: [configure, build-docker-image]
     runs-on: ubuntu-latest
-    needs:
-      - build-docker-image
-
-    strategy:
-      matrix:
-        environment:
-          - ${{ startsWith(github.ref, 'refs/tags/') && 'production' || format('pr-{0}', github.event.pull_request.number) }}
 
     environment:
-      name: ${{ matrix.environment }}
-      url: https://${{ steps.config.outputs.ingress_host }}
+      name: ${{ needs.configure.outputs.environment }}
+      url: https://${{ needs.configure.outputs.hostname }}
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
-
-      - name: Generate deployment config
-        id: config
-        run: |
-          if [[ $GITHUB_REF == refs/tags/* ]]; then
-            INGRESS_HOST=${{ vars.BASE_DOMAIN }}
-            LETSENCRYPT_ENV="production"
-          else
-            INGRESS_HOST=${{ github.sha }}.${{ vars.BASE_DOMAIN }}
-            LETSENCRYPT_ENV="staging"
-          fi
-
-          echo "Setting ingress host to $INGRESS_HOST"
-          echo "ingress_host=$INGRESS_HOST" >> $GITHUB_OUTPUT
-
-          echo "Setting letsencrypt_env to $LETSENCRYPT_ENV"
-          echo "letsencrypt_env=$LETSENCRYPT_ENV" >> $GITHUB_OUTPUT
-
-          NAMESPACE=$APP_NAME-${{ matrix.environment }}
-          echo "Setting namespace to $NAMESPACE"
-          echo "namespace=$NAMESPACE" >> $GITHUB_OUTPUT
 
       - name: Setup Kubernetes
         uses: ./.github/actions/setup-k8s
@@ -108,48 +109,23 @@ jobs:
       - name: OpenTofu Apply
         working-directory: ./deploy
         env:
-          TF_VAR_image: ${{ env.DOCKER_IMAGE }}:${{ needs.build-docker-image.outputs.tag }}
-          TF_VAR_hostname: ${{ steps.config.outputs.ingress_host }}
-          TF_VAR_certificate_issuer: ${{ steps.config.outputs.letsencrypt_env }}
+          TF_VAR_image: ${{ needs.configure.outputs.image }}
+          TF_VAR_hostname: ${{ needs.configure.outputs.hostname }}
+          TF_VAR_certificate_issuer: ${{ needs.configure.outputs.letsencrypt_env }}
         run: |
           tofu init
           tofu plan -out=tfplan -var-file="1-dummy-values.tfvars" -var-file="0-values.tfvars" -input=false 
           tofu apply -var-file="0-values.tfvars" -input=false -auto-approve tfplan
 
   cleanup-environment:
-    if: github.event.action == 'closed'
+    if: github.event.action == 'closed' && needs.configure.outputs.is_production == 'false'
     name: Delete PR Environment
+    needs: [configure]
     runs-on: ubuntu-latest
     environment:
-      name: pr-${{ github.event.pull_request.number }}
+      name: ${{ needs.configure.outputs.environment }}
 
     steps:
-      - name: Generate cleanup config
-        id: config
-        run: |
-          ENVIRONMENT=pr-${{ github.event.pull_request.number }}
-          NAMESPACE=${{ env.APP_NAME }}-$ENVIRONMENT
-
-          echo "Setting environment to $ENVIRONMENT"
-          echo "environment=$ENVIRONMENT" >> $GITHUB_OUTPUT
-
-          echo "Setting namespace to $NAMESPACE"
-          echo "namespace=$NAMESPACE" >> $GITHUB_OUTPUT
-
-      - name: Safety check
-        run: |
-          NAMESPACE=${{ steps.config.outputs.namespace }}
-
-          if [[ "$NAMESPACE" == *"production"* ]]; then
-            echo "❌ Refusing to delete namespace containing 'production'"
-            exit 1
-          fi
-
-          if [[ "$NAMESPACE" != ${{ env.APP_NAME }}-pr-* ]]; then
-            echo "❌ Namespace doesn't match expected pattern for PR environments"
-            exit 1
-          fi
-
       - name: Checkout repository
         uses: actions/checkout@v4
 
