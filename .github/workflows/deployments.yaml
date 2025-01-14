@@ -9,23 +9,24 @@ on:
     branches:
       - "*"
 
-env:
-  APP_NAME: next-template
-  IMAGE_REPOSITORY: rutger505/next-template
-
 jobs:
   configure:
     name: Generate Configuration
     runs-on: ubuntu-latest
     outputs:
+      application_name: ${{ steps.config.outputs.application_name }}
       environment: ${{ steps.config.outputs.environment }}
       is_production: ${{ steps.config.outputs.is_production }}
       image: ${{ steps.config.outputs.image }}
+      image_repository: ${{ steps.config.outputs.image_repository }}
       hostname: ${{ steps.config.outputs.hostname }}
       letsencrypt_env: ${{ steps.config.outputs.letsencrypt_env }}
 
     steps:
-      - name: Generate configuration
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Configuration
         id: config
         run: |
           if [[ $GITHUB_REF == refs/tags/* ]]; then
@@ -42,10 +43,11 @@ jobs:
             LETSENCRYPT_ENV="staging"
           fi
 
-          NAMESPACE=${{ env.APP_NAME }}-$ENVIRONMENT
+          source ./application.env
 
+          echo "application_name=$APPLICATION_NAME" >> $GITHUB_OUTPUT
+          echo "image_repository=$IMAGE_REPOSITORY" >> $GITHUB_OUTPUT
           echo "environment=$ENVIRONMENT" >> $GITHUB_OUTPUT
-          echo "namespace=$NAMESPACE" >> $GITHUB_OUTPUT
           echo "is_production=$IS_PRODUCTION" >> $GITHUB_OUTPUT
           echo "image=$IMAGE_REPOSITORY:$TAG" >> $GITHUB_OUTPUT
           echo "hostname=$HOSTNAME" >> $GITHUB_OUTPUT
@@ -79,8 +81,8 @@ jobs:
           context: .
           push: true
           tags: ${{ needs.configure.outputs.image }}
-          cache-from: type=registry,ref=${{ env.IMAGE_REPOSITORY }}:cache
-          cache-to: type=registry,ref=${{ env.IMAGE_REPOSITORY }}:cache,mode=max
+          cache-from: type=registry,ref=${{ needs.configure.outputs.image_repository }}:cache
+          cache-to: type=registry,ref=${{ needs.configure.outputs.image_repository }}:cache,mode=max
 
   deploy-to-kubernetes:
     if: github.event.action != 'closed'
@@ -104,12 +106,13 @@ jobs:
       - name: OpenTofu Apply
         working-directory: ./deploy
         env:
+          TF_VAR_application_name: ${{ needs.configure.outputs.application_name }}
           TF_VAR_image: ${{ needs.configure.outputs.image }}
           TF_VAR_hostname: ${{ needs.configure.outputs.hostname }}
           TF_VAR_certificate_issuer: ${{ needs.configure.outputs.letsencrypt_env }}
         run: |
           tofu init
-          tofu plan -input=false -var-file="0-values.tfvars" -out=tfplan
+          tofu plan -input=false -out=tfplan
           tofu apply -input=false -auto-approve tfplan
 
   cleanup-environment:
@@ -131,7 +134,12 @@ jobs:
 
       - name: OpenTofu Destroy
         working-directory: ./deploy
+        env:
+          TF_VAR_application_name: ${{ needs.configure.outputs.application_name }}
+          TF_VAR_image: ${{ needs.configure.outputs.image }}
+          TF_VAR_hostname: ${{ needs.configure.outputs.hostname }}
+          TF_VAR_certificate_issuer: ${{ needs.configure.outputs.letsencrypt_env }}
         run: |
           tofu init
-          tofu plan -input=false -var-file="1-dummy-values.tfvars" -var-file="0-values.tfvars" -destroy -out=tfplan 
+          tofu plan -input=false -destroy -out=tfplan 
           tofu apply -input=false -auto-approve tfplan
