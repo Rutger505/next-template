@@ -9,10 +9,6 @@ on:
     branches:
       - "*"
 
-concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
-
 env:
   APP_NAME: next-template
   IMAGE_REPOSITORY: rutger505/next-template
@@ -57,7 +53,7 @@ jobs:
           echo "letsencrypt_env=$LETSENCRYPT_ENV" >> $GITHUB_OUTPUT
 
           echo "Generated configuration:"
-          echo $GITHUB_OUTPUT
+          cat $GITHUB_OUTPUT
 
   build-docker-image:
     if: github.event.action != 'closed'
