@@ -22,8 +22,10 @@ runs:
       uses: ./.github/actions/utils/with-post-step
       with:
         main: |
+          echo "Creating setting kubeconfig in ~/.kube/config"
           mkdir -p ~/.kube
           echo "${{ inputs.kubeconfig }}" > ~/.kube/config
           chmod 600 ~/.kube/config
         post: |
+          echo "Cleaning up kubeconfig"
           rm -f ~/.kube/config
