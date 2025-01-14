@@ -51,14 +51,14 @@ resource "kubernetes_deployment" "app" {
 
     selector {
       match_labels = {
-        app = kubernetes_deployment.app.metadata[0].name
+        app = "${var.application_name}-deployment"
       }
     }
 
     template {
       metadata {
         labels = {
-          app = kubernetes_deployment.app.metadata[0].name
+          app = "${var.application_name}-deployment"
         }
       }
 
