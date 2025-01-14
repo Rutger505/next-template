@@ -1,0 +1,31 @@
+name: "Setup Kubernetes"
+description: "Sets up Kubernetes configuration and OpenTofu"
+
+inputs:
+  kubeconfig:
+    description: "Kubeconfig for cluster access"
+    required: true
+  tofu-version:
+    description: "Version of OpenTofu to install"
+    required: false
+    default: "1.9.0"
+
+runs:
+  using: composite
+  steps:
+    - name: Setup Kubeconfig
+      shell: bash
+      run: |
+        mkdir -p ~/.kube
+        echo "${{ inputs.kubeconfig }}" > ~/.kube/config
+        chmod 600 ~/.kube/config
+
+    - name: Setup OpenTofu
+      uses: opentofu/setup-opentofu@v1
+      with:
+        tofu_version: ${{ inputs.tofu-version }}
+
+    - name: Cleanup Kubeconfig
+      if: always()
+      shell: bash
+      run: rm -f ~/.kube/config

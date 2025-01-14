@@ -100,16 +100,10 @@ jobs:
           echo "Setting namespace to $NAMESPACE"
           echo "namespace=$NAMESPACE" >> $GITHUB_OUTPUT
 
-      - name: Setup Kubeconfig
-        run: |
-          mkdir -p ~/.kube
-          echo "${{ secrets.KUBECONFIG }}" > ~/.kube/config
-          chmod 600 ~/.kube/config
-
-      - name: Setup OpenTofu
-        uses: opentofu/setup-opentofu@v1
+      - name: Setup Kubernetes
+        uses: ./.github/actions/setup-k8s
         with:
-          tofu_version: "1.9.0"
+          kubeconfig: ${{ secrets.KUBECONFIG }}
 
       - name: OpenTofu Apply
         working-directory: ./deploy
@@ -124,10 +118,6 @@ jobs:
           tofu init
           tofu plan -out=tfplan
           tofu apply -auto-approve tfplan
-
-      - name: Cleanup
-        if: always()
-        run: rm -f ~/.kube/config
 
   cleanup-environment:
     if: github.event.action == 'closed'
@@ -166,16 +156,10 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Setup Kubeconfig
-        run: |
-          mkdir -p ~/.kube
-          echo "${{ secrets.KUBECONFIG }}" > ~/.kube/config
-          chmod 600 ~/.kube/config
-
-      - name: Setup OpenTofu
-        uses: opentofu/setup-opentofu@v1
+      - name: Setup Kubernetes
+        uses: ./.github/actions/setup-k8s
         with:
-          tofu_version: "1.9.0"
+          kubeconfig: ${{ secrets.KUBECONFIG }}
 
       - name: OpenTofu Destroy
         working-directory: ./deploy
@@ -191,10 +175,6 @@ jobs:
           tofu init
           tofu plan -destroy -out=tfplan
           tofu apply -auto-approve tfplan
-
-      - name: Cleanup Kubeconfig
-        if: always()
-        run: rm -f ~/.kube/config
 
       - name: Comment cleanup status
         if: always()
@@ -236,5 +216,3 @@ jobs:
               issue_number: context.issue.number,
               body: message
             });
-
-            console.log('Successfully posted cleanup comment');
