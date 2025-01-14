@@ -31,7 +31,8 @@ FROM base AS builder
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
-RUN SKIP_ENV_VALIDATION=1 npm run build
+# Skipping linting and typescript because it's already done in another CI pipeline
+RUN SKIP_ENV_VALIDATION=1 npm run build -- --no-lint --no-typescript
 
 
 FROM base AS production
