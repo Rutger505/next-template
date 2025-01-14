@@ -114,8 +114,8 @@ jobs:
           TF_VAR_certificate_issuer: ${{ needs.configure.outputs.letsencrypt_env }}
         run: |
           tofu init
-          tofu plan -out=tfplan -var-file="1-dummy-values.tfvars" -var-file="0-values.tfvars" -input=false 
-          tofu apply -var-file="0-values.tfvars" -input=false -auto-approve tfplan
+          tofu plan -input=false -var-file="0-values.tfvars" -out=tfplan
+          tofu apply -input=false -auto-approve tfplan
 
   cleanup-environment:
     if: github.event.action == 'closed' && needs.configure.outputs.is_production == 'false'
@@ -138,5 +138,5 @@ jobs:
         working-directory: ./deploy
         run: |
           tofu init
-          tofu plan -destroy -out=tfplan -var-file="1-dummy-values.tfvars" -var-file="0-values.tfvars" -input=false 
-          tofu apply -var-file="1-dummy-values.tfvars" -var-file="0-values.tfvars" -input=false -auto-approve tfplan
+          tofu plan -input=false -var-file="1-dummy-values.tfvars" -var-file="0-values.tfvars" -destroy -out=tfplan 
+          tofu apply -input=false -auto-approve tfplan
