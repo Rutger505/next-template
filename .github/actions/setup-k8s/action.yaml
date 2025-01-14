@@ -13,23 +13,17 @@ inputs:
 runs:
   using: composite
   steps:
-    - name: Setup Kubeconfig
-      shell: bash
-      id: setup
-      run: |
-        mkdir -p ~/.kube
-        echo "${{ inputs.kubeconfig }}" > ~/.kube/config
-        chmod 600 ~/.kube/config
-
     - name: Setup OpenTofu
       uses: opentofu/setup-opentofu@v1
       with:
         tofu_version: ${{ inputs.tofu-version }}
 
-  post:
-    using: composite
-    steps:
-      - name: Cleanup Kubeconfig
-        if: always()
-        shell: bash
-        run: rm -f ~/.kube/config
+    - name: Cleanup Kubeconfig
+      uses: ./.github/actions/utils/with-post-step
+      with:
+        main: |
+          mkdir -p ~/.kube
+          echo "${{ inputs.kubeconfig }}" > ~/.kube/config
+          chmod 600 ~/.kube/config
+        post: |
+          rm -f ~/.kube/config
