@@ -1,7 +1,7 @@
 # Namespace
 resource "kubernetes_namespace" "app" {
   metadata {
-    name = "next-template-pr-1"
+    name = "${var.application_name}-${terraform.workspace}"
   }
 }
 
@@ -10,11 +10,12 @@ resource "kubernetes_config_map" "app" {
   depends_on = [kubernetes_namespace.app]
 
   metadata {
-    name      = "next-template-config"
-    namespace = "next-template-pr-1"
+    name      = "${var.application_name}-config"
+    namespace = kubernetes_namespace.app.metadata[0].name
   }
 
   data = {
+    # add config here
   }
 }
 
@@ -23,11 +24,12 @@ resource "kubernetes_secret" "app" {
   depends_on = [kubernetes_namespace.app]
 
   metadata {
-    name      = "next-template-secret"
-    namespace = "next-template-pr-1"
+    name      = "${var.application_name}-secret"
+    namespace = kubernetes_namespace.app.metadata[0].name
   }
 
   data = {
+    # add secrets here
   }
 }
 
@@ -40,23 +42,23 @@ resource "kubernetes_deployment" "app" {
   ]
 
   metadata {
-    name      = "next-template-deployment"
-    namespace = "next-template-pr-1"
+    name      = "${var.application_name}-deployment"
+    namespace = kubernetes_namespace.app.metadata[0].name
   }
 
   spec {
-    replicas = 1
+    replicas = var.replicas
 
     selector {
       match_labels = {
-        app = "next-template-deployment"
+        app = kubernetes_deployment.app.metadata[0].name
       }
     }
 
     template {
       metadata {
         labels = {
-          app = "next-template-deployment"
+          app = kubernetes_deployment.app.metadata[0].name
         }
       }
 
@@ -65,7 +67,7 @@ resource "kubernetes_deployment" "app" {
 
         container {
           name  = "next-template"
-          image = "rutger505/next-template:c481df5add99e46f3cbd18beb8b30581f278567f"
+          image = var.image
 
           resources {
             limits = {
@@ -79,7 +81,7 @@ resource "kubernetes_deployment" "app" {
           }
 
           port {
-            container_port = 3000
+            container_port = var.application_port
           }
 
           env_from {
@@ -104,26 +106,24 @@ resource "kubernetes_service" "app" {
   depends_on = [kubernetes_namespace.app]
 
   metadata {
-    name      = "next-template-service"
-    namespace = "next-template-pr-1"
+    name      = "${var.application_name}-service"
+    namespace = kubernetes_namespace.app.metadata[0].name
   }
 
   spec {
     selector = {
-      app = "next-template-deployment"
+      app =  kubernetes_deployment.app.metadata[0].name
     }
 
     port {
       port        = 80
-      target_port = 3000
+      target_port = var.application_port
       protocol    = "TCP"
     }
 
     type = "ClusterIP"
   }
 }
-
-
 
 # Ingress
 resource "kubernetes_ingress_v1" "app" {
@@ -133,20 +133,20 @@ resource "kubernetes_ingress_v1" "app" {
   ]
 
   metadata {
-    name      = "next-template-ingress"
-    namespace = "next-template-pr-1"
+    name      = "${var.application_name}-ingress"
+    namespace = kubernetes_namespace.app.metadata[0].name
   }
 
   spec {
     ingress_class_name = "traefik"
 
     tls {
-      hosts       = ["helloasdfasdfsadf.com"]
-      secret_name = "next-template-tls"
+      hosts       = [var.hostname]
+      secret_name = "${var.application_name}-tls"
     }
 
     rule {
-      host = "helloasdfasdfasdf.com"
+      host = var.hostname
 
       http {
         path {
@@ -178,16 +178,16 @@ resource "kubernetes_manifest" "app" {
     apiVersion = "cert-manager.io/v1"
     kind       = "Certificate"
     metadata = {
-      name      = "next-template-certificate"
-      namespace = "next-template-pr-1"
+      name      = "${var.application_name}-certificate"
+      namespace = kubernetes_namespace.app.metadata[0].name
     }
     spec = {
-      secretName   = "next-template-tls"
+      secretName   = "${var.application_name}-tls"
       duration     = "2160h" # 90d
       renewBefore  = "360h" # 15d
-      dnsNames     = ["hello.com"]
+      dnsNames     = [var.hostname]
       issuerRef = {
-        name = "staging"
+        name = var.certificate_issuer
         kind = "ClusterIssuer"
       }
     }

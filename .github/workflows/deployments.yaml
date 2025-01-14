@@ -108,16 +108,13 @@ jobs:
       - name: OpenTofu Apply
         working-directory: ./deploy
         env:
-          TF_VAR_app_name: ${{ env.APP_NAME }}
-          TF_VAR_namespace: ${{ steps.config.outputs.namespace }}
-          TF_VAR_image_repository: ${{ env.DOCKER_IMAGE }}
-          TF_VAR_image_tag: ${{ needs.build-docker-image.outputs.tag }}
-          TF_VAR_ingress_host: ${{ steps.config.outputs.ingress_host }}
-          TF_VAR_certificate_cluster_issuer: letsencrypt-${{ steps.config.outputs.letsencrypt_env }}
+          TF_VAR_image: ${{ env.DOCKER_IMAGE }}:${{ steps.config.outputs.tag }}
+          TF_VAR_hostname: ${{ steps.config.outputs.ingress_host }}
+          TF_VAR_certificate_issuer: ${{ steps.config.outputs.letsencrypt_env }}
         run: |
           tofu init
           tofu plan -out=tfplan
-          tofu apply -auto-approve tfplan
+          tofu apply -var-file="0-values"  -auto-approve tfplan
 
   cleanup-environment:
     if: github.event.action == 'closed'
@@ -163,15 +160,7 @@ jobs:
 
       - name: OpenTofu Destroy
         working-directory: ./deploy
-        env:
-          TF_VAR_app_name: ${{ env.APP_NAME }}
-          TF_VAR_namespace: ${{ steps.config.outputs.namespace }}
-          # Set empty/dummy values for required variables
-          TF_VAR_image_repository: dummy
-          TF_VAR_image_tag: dummy
-          TF_VAR_ingress_host: dummy
-          TF_VAR_certificate_cluster_issuer: dummy
         run: |
           tofu init
           tofu plan -destroy -out=tfplan
-          tofu apply -auto-approve tfplan
+          tofu apply -var-file="1-dummy-values" -var-file="0-values" -auto-approve tfplan
