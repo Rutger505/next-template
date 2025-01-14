@@ -62,3 +62,4 @@ docs
 Makefile
 deploy
 
+application.env
