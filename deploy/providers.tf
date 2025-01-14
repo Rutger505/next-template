@@ -6,9 +6,9 @@ terraform {
     }
   }
 
-  backend "pg" {
-    conn_str = var.postgres_backend_connection_string
-    schema_name = "open_tofu_state"
+  backend "kubernetes" {
+    config_path = "~/.kube/config"
+    secret_suffix = "next-starter"
   }
 }
 
