@@ -33,7 +33,7 @@ jobs:
             IS_PRODUCTION="true"
             TAG=$GITHUB_REF_NAME
             ENVIRONMENT="production"
-            INGRESS_HOST=${{ vars.BASE_DOMAIN }}
+            HOSTNAME=${{ vars.BASE_DOMAIN }}
             LETSENCRYPT_ENV="production"
           else
             IS_PRODUCTION="false"
