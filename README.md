@@ -16,6 +16,6 @@ Next.js template for my personal needs.
 | Drizzle                                                                              | ❌️    |
 | Authenticatie - With utility functions (Decide between next-auth, auth.js and lucia) | ❌️    |
 | OpenTofu kubernetes configuration                                                    | ✅     |
-| Automated deployments - Linting seperate from build                                  | ❌️    |
+| Automated deployments - Linting seperate from build                                  | ✅     |
 | Discord webhook messages                                                             | ❌️    |
 | Playwright Integration                                                               | ❌️    |
