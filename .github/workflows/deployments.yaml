@@ -18,6 +18,7 @@ jobs:
       environment: ${{ steps.config.outputs.environment }}
       is_production: ${{ steps.config.outputs.is_production }}
       image: ${{ steps.config.outputs.image }}
+      image_repository: ${{ steps.config.outputs.image_repository }}
       hostname: ${{ steps.config.outputs.hostname }}
       letsencrypt_env: ${{ steps.config.outputs.letsencrypt_env }}
 
@@ -45,6 +46,7 @@ jobs:
           source ./application.env
 
           echo "application_name=$APPLICATION_NAME" >> $GITHUB_OUTPUT
+          echo "image_repository=$IMAGE_REPOSITORY" >> $GITHUB_OUTPUT
           echo "environment=$ENVIRONMENT" >> $GITHUB_OUTPUT
           echo "is_production=$IS_PRODUCTION" >> $GITHUB_OUTPUT
           echo "image=$IMAGE_REPOSITORY:$TAG" >> $GITHUB_OUTPUT
@@ -79,8 +81,8 @@ jobs:
           context: .
           push: true
           tags: ${{ needs.configure.outputs.image }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+          cache-from: type=registry,ref=${{ needs.configure.outputs.image_repository }}:cache
+          cache-to: type=registry,ref=${{ needs.configure.outputs.image_repository }}:cache,mode=max
 
   deploy-to-kubernetes:
     if: github.event.action != 'closed'
