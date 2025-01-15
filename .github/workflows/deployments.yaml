@@ -116,9 +116,11 @@ jobs:
           tofu plan -input=false -out=tfplan
           tofu apply -input=false -auto-approve tfplan
 
-  cleanup-environment:
-    if: github.event.action == 'closed' && needs.configure.outputs.is_production == 'false'
-    name: Delete PR Environment
+  destroy-pr-environment:
+    if: github.event.action == 'closed'
+      && needs.configure.outputs.is_production == 'false'
+      && contains(needs.configure.outputs.environment, 'pr-')
+    name: Destroy PR Environment
     needs: [configure]
     runs-on: ubuntu-latest
     environment:
