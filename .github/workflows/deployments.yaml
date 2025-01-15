@@ -20,7 +20,7 @@ jobs:
       image: ${{ steps.config.outputs.image }}
       image_repository: ${{ steps.config.outputs.image_repository }}
       hostname: ${{ steps.config.outputs.hostname }}
-      letsencrypt_env: ${{ steps.config.outputs.letsencrypt_env }}
+      certificate_issuer: ${{ steps.config.outputs.certificate_issuer }}
 
     steps:
       - name: Checkout repository
@@ -34,13 +34,13 @@ jobs:
             TAG=$GITHUB_REF_NAME
             ENVIRONMENT="production"
             HOSTNAME=${{ vars.BASE_DOMAIN }}
-            LETSENCRYPT_ENV="production"
+            CERTIFICATE_ISSUER="letsencrypt-production"
           else
             IS_PRODUCTION="false"
             TAG=$GITHUB_SHA
             ENVIRONMENT="pr-${{ github.event.pull_request.number }}"
             HOSTNAME=${{ github.sha }}.${{ vars.BASE_DOMAIN }}
-            LETSENCRYPT_ENV="staging"
+            CERTIFICATE_ISSUER="letsencrypt-staging"
           fi
 
           source ./application.env
@@ -51,7 +51,7 @@ jobs:
           echo "is_production=$IS_PRODUCTION" >> $GITHUB_OUTPUT
           echo "image=$IMAGE_REPOSITORY:$TAG" >> $GITHUB_OUTPUT
           echo "hostname=$HOSTNAME" >> $GITHUB_OUTPUT
-          echo "letsencrypt_env=$LETSENCRYPT_ENV" >> $GITHUB_OUTPUT
+          echo "certificate_issuer=$CERTIFICATE_ISSUER" >> $GITHUB_OUTPUT
 
           echo "Generated configuration:"
           cat $GITHUB_OUTPUT
@@ -109,7 +109,7 @@ jobs:
           TF_VAR_application_name: ${{ needs.configure.outputs.application_name }}
           TF_VAR_image: ${{ needs.configure.outputs.image }}
           TF_VAR_hostname: ${{ needs.configure.outputs.hostname }}
-          TF_VAR_certificate_issuer: ${{ needs.configure.outputs.letsencrypt_env }}
+          TF_VAR_certificate_issuer: ${{ needs.configure.outputs.certificate_issuer }}
         run: |
           tofu init
           tofu workspace select -or-create ${{ needs.configure.outputs.environment }}
@@ -139,7 +139,7 @@ jobs:
           TF_VAR_application_name: ${{ needs.configure.outputs.application_name }}
           TF_VAR_image: ${{ needs.configure.outputs.image }}
           TF_VAR_hostname: ${{ needs.configure.outputs.hostname }}
-          TF_VAR_certificate_issuer: ${{ needs.configure.outputs.letsencrypt_env }}
+          TF_VAR_certificate_issuer: ${{ needs.configure.outputs.certificate_issuer }}
         run: |
           tofu init
           tofu workspace select ${{ needs.configure.outputs.environment }}
