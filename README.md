@@ -11,6 +11,7 @@ Next.js template for my personal needs.
 | TypeScript                                                                           | ✅     |
 | ESLint                                                                               | ✅     |
 | Prettier                                                                             | ✅     |
+| Bun integration                                                                      | ❌️    |
 | SonarQube                                                                            | ❌️    |
 | tRPC                                                                                 | ❌️    |
 | Drizzle                                                                              | ❌️    |
