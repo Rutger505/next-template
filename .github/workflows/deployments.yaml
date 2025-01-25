@@ -116,7 +116,7 @@ jobs:
         run: |
           tofu init
           tofu workspace select -or-create ${{ needs.configure.outputs.environment }}
-          tofu apply -input=false -auto-approve 
+          tofu apply -input=false -auto-approve
 
   destroy-pr-environment:
     if: github.event.action == 'closed'
@@ -144,6 +144,7 @@ jobs:
           TF_VAR_image: ${{ needs.configure.outputs.image }}
           TF_VAR_hostname: ${{ needs.configure.outputs.hostname }}
           TF_VAR_certificate_issuer: ${{ needs.configure.outputs.certificate_issuer }}
+          TF_VAR_secrets: ${{ toJSON(secrets) }}
         run: |
           tofu init
           tofu workspace select ${{ needs.configure.outputs.environment }}

@@ -28,9 +28,7 @@ resource "kubernetes_secret" "app" {
     namespace = kubernetes_namespace.app.metadata[0].name
   }
 
-  data = {
-    # add secrets here
-  }
+  data = var.secrets
 }
 
 # Deployment
