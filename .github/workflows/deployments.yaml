@@ -18,9 +18,8 @@ jobs:
       environment: ${{ steps.config.outputs.environment }}
       is_production: ${{ steps.config.outputs.is_production }}
       image: ${{ steps.config.outputs.image }}
-      image_repository: ${{ steps.config.outputs.image_repository }}
       hostname: ${{ steps.config.outputs.hostname }}
-      letsencrypt_env: ${{ steps.config.outputs.letsencrypt_env }}
+      certificate_issuer: ${{ steps.config.outputs.certificate_issuer }}
 
     steps:
       - name: Checkout repository
@@ -34,24 +33,23 @@ jobs:
             TAG=$GITHUB_REF_NAME
             ENVIRONMENT="production"
             HOSTNAME=${{ vars.BASE_DOMAIN }}
-            LETSENCRYPT_ENV="production"
+            CERTIFICATE_ISSUER="letsencrypt-production"
           else
             IS_PRODUCTION="false"
             TAG=$GITHUB_SHA
             ENVIRONMENT="pr-${{ github.event.pull_request.number }}"
             HOSTNAME=${{ github.sha }}.${{ vars.BASE_DOMAIN }}
-            LETSENCRYPT_ENV="staging"
+            CERTIFICATE_ISSUER="letsencrypt-staging"
           fi
 
           source ./application.env
 
           echo "application_name=$APPLICATION_NAME" >> $GITHUB_OUTPUT
-          echo "image_repository=$IMAGE_REPOSITORY" >> $GITHUB_OUTPUT
           echo "environment=$ENVIRONMENT" >> $GITHUB_OUTPUT
           echo "is_production=$IS_PRODUCTION" >> $GITHUB_OUTPUT
           echo "image=$IMAGE_REPOSITORY:$TAG" >> $GITHUB_OUTPUT
           echo "hostname=$HOSTNAME" >> $GITHUB_OUTPUT
-          echo "letsencrypt_env=$LETSENCRYPT_ENV" >> $GITHUB_OUTPUT
+          echo "certificate_issuer=$CERTIFICATE_ISSUER" >> $GITHUB_OUTPUT
 
           echo "Generated configuration:"
           cat $GITHUB_OUTPUT
@@ -81,8 +79,13 @@ jobs:
           context: .
           push: true
           tags: ${{ needs.configure.outputs.image }}
-          cache-from: type=registry,ref=${{ needs.configure.outputs.image_repository }}:cache
-          cache-to: type=registry,ref=${{ needs.configure.outputs.image_repository }}:cache,mode=max
+          cache-from: |
+            type=gha,scope=${{ github.ref_name }}
+            type=gha,scope=development
+            type=gha,scope=main
+          cache-to: |
+            type=gha,mode=max,scope=${{ github.ref_name }}
+            ${{ startsWith(github.ref, 'refs/tags/') && 'type=gha,mode=max,scope=main' || '' }}
 
   deploy-to-kubernetes:
     if: github.event.action != 'closed'
@@ -109,16 +112,17 @@ jobs:
           TF_VAR_application_name: ${{ needs.configure.outputs.application_name }}
           TF_VAR_image: ${{ needs.configure.outputs.image }}
           TF_VAR_hostname: ${{ needs.configure.outputs.hostname }}
-          TF_VAR_certificate_issuer: ${{ needs.configure.outputs.letsencrypt_env }}
+          TF_VAR_certificate_issuer: ${{ needs.configure.outputs.certificate_issuer }}
         run: |
           tofu init
           tofu workspace select -or-create ${{ needs.configure.outputs.environment }}
-          tofu plan -input=false -out=tfplan
-          tofu apply -input=false -auto-approve tfplan
+          tofu apply -input=false -auto-approve 
 
-  cleanup-environment:
-    if: github.event.action == 'closed' && needs.configure.outputs.is_production == 'false'
-    name: Delete PR Environment
+  destroy-pr-environment:
+    if: github.event.action == 'closed'
+      && needs.configure.outputs.is_production == 'false'
+      && contains(needs.configure.outputs.environment, 'pr-')
+    name: Destroy PR Environment
     needs: [configure]
     runs-on: ubuntu-latest
     environment:
@@ -139,11 +143,10 @@ jobs:
           TF_VAR_application_name: ${{ needs.configure.outputs.application_name }}
           TF_VAR_image: ${{ needs.configure.outputs.image }}
           TF_VAR_hostname: ${{ needs.configure.outputs.hostname }}
-          TF_VAR_certificate_issuer: ${{ needs.configure.outputs.letsencrypt_env }}
+          TF_VAR_certificate_issuer: ${{ needs.configure.outputs.certificate_issuer }}
         run: |
           tofu init
           tofu workspace select ${{ needs.configure.outputs.environment }}
-          tofu plan -input=false -destroy -out=tfplan 
-          tofu apply -input=false -auto-approve tfplan
+          tofu apply -input=false -auto-approve -destroy
           tofu workspace select default
           tofu workspace delete ${{ needs.configure.outputs.environment }}
