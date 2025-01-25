@@ -31,6 +31,8 @@ FROM base AS builder
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
+RUN --mount=type=cache,target=/app/.next/cache
+
 RUN SKIP_ENV_VALIDATION=1 npm run build
 
 
@@ -51,4 +53,3 @@ ENV PORT=3000
 
 ENV HOSTNAME="0.0.0.0"
 CMD ["node", "server.js"]
-
