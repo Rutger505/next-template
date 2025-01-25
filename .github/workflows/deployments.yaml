@@ -57,7 +57,7 @@ jobs:
   build-docker-image:
     if: github.event.action != 'closed'
     name: Build Docker image
-    needs: [configure]
+    needs: [ configure ]
     runs-on: ubuntu-latest
 
     steps:
