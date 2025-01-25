@@ -31,13 +31,18 @@ FROM base AS builder
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
-RUN --mount=type=cache,target=/app/.next/cache
-# Look at if the cache is working properly
-RUN ls -la /app/.next/cache || true
+# Create cache directory and set permissions
+RUN mkdir -p /app/.next/cache && chmod 777 /app/.next/cache
 
+# Create volume specifically for the cache
+VOLUME ["/app/.next/cache"]
+
+#Debug if cache is being used
+RUN ls -la /app/.next/cache || echo "No cache directory found before build"
 
 RUN SKIP_ENV_VALIDATION=1 npm run build
 
+RUN ls -la /app/.next/cache || echo "Cache directory not found after build"
 
 FROM base AS production
 
