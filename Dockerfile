@@ -33,7 +33,7 @@ COPY . .
 
 RUN --mount=type=cache,target=/app/.next/cache
 # Look at if the cache is working properly
-RUN ls -la /app/.next/cache
+RUN ls -la /app/.next/cache || true
 
 
 RUN SKIP_ENV_VALIDATION=1 npm run build
