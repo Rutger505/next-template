@@ -36,3 +36,9 @@ variable "secrets" {
   sensitive   = true
   default     = {}
 }
+
+variable "config" {
+  description = "Config key-value pairs"
+  type        = map(string)
+  default     = {}
+}

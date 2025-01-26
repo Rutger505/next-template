@@ -144,6 +144,7 @@ jobs:
           TF_VAR_image: ${{ needs.configure.outputs.image }}
           TF_VAR_hostname: ${{ needs.configure.outputs.hostname }}
           TF_VAR_certificate_issuer: ${{ needs.configure.outputs.certificate_issuer }}
+          TF_VAR_config: ${{ toJSON(vars) }}
           TF_VAR_secrets: ${{ toJSON(secrets) }}
         run: |
           tofu init
