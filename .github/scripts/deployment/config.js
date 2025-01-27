@@ -77,6 +77,20 @@ export default async function generateConfig({ context, core }) {
       core.info(`${key}: ${value}`);
     });
 
+    await core.summary
+      .addHeader("Deployment Configuration", 2)
+      .addHeader("Configuration Values", 3)
+      .startTable()
+      .addHeaderRow(["Parameter", "Value"])
+      .configureAlignmentOptions(["left", "left"]);
+
+    // Add rows to table
+    Object.entries(outputs).forEach(([key, value]) => {
+      core.summary.addRow([key, value]);
+    });
+
+    await core.summary.finishTable().write();
+
     return outputs;
   } catch (error) {
     if (error instanceof Error) {
