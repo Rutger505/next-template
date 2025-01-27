@@ -1,17 +1,25 @@
 // @ts-check
 
-interface ConfigValues {
-  APPLICATION_NAME: string;
-  IMAGE_REPOSITORY: string;
-}
+/**
+ * @typedef {Object} ConfigValues
+ * @property {string} APPLICATION_NAME
+ * @property {string} IMAGE_REPOSITORY
+ */
 
+/**
+ * @typedef {import('@actions/github').Context} Context
+ * @typedef {typeof core} Core
+ */
+
+/**
+ * @returns {{ applicationName: string, imageRepository: string }}
+ */
 function validateApplicationConfig() {
-  const requiredEnvVars: (keyof ConfigValues)[] = [
-    "APPLICATION_NAME",
-    "IMAGE_REPOSITORY",
-  ];
+  /** @type {Array<keyof ConfigValues>} */
+  const requiredEnvVars = ["APPLICATION_NAME", "IMAGE_REPOSITORY"];
 
-  const envVars = process.env as unknown as ConfigValues;
+  /** @type {ConfigValues} */
+  const envVars = /** @type {any} */ (process.env);
 
   const missingEnvVars = requiredEnvVars.filter(
     (envVar) => !envVars[envVar]?.length,
