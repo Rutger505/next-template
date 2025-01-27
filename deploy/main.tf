@@ -14,7 +14,7 @@ resource "kubernetes_config_map" "app" {
     namespace = kubernetes_namespace.app.metadata[0].name
   }
 
-  data = var.secrets
+  data = var.config
 }
 
 # Secret
