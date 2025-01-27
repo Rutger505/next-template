@@ -41,11 +41,16 @@ jobs:
         env:
           APPLICATION_NAME: ${{ steps.env.outputs.application_name }}
           IMAGE_REPOSITORY: ${{ steps.env.outputs.image_repository }}
+          VARIABLES: ${{ toJSON(vars) }}
+          SECRETS: ${{ toJSON(secrets) }}
         with:
           script: |
             const { default: generateConfig } = await import('${{ github.workspace }}/.github/scripts/deployment/config.js');
 
             return await generateConfig({ core, context });
+
+      - name: Exit
+        run: exit 1
 
   build-docker-image:
     if: github.event.action != 'closed'

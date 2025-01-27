@@ -87,7 +87,7 @@ ${Object.entries(outputs)
   })
   .join("\n")}
     `;
-    await core.summary.addRaw(summary).addBreak().write();
+    await core.summary.addRaw(summary).write();
 
     return outputs;
   } catch (error) {
