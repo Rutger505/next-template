@@ -37,6 +37,14 @@ function validateApplicationConfig() {
   };
 }
 
+function filterDeploymentConfig(jsonObject) {
+  const deploymentValues = Object.entries(jsonObject).filter(([key]) =>
+    key.startsWith("DEPLOYMENT_"),
+  );
+
+  return Object.fromEntries(deploymentValues);
+}
+
 /**
  * @param {Object} params
  * @param {Context} params.context
@@ -45,11 +53,15 @@ function validateApplicationConfig() {
 export default async function generateConfig({ context, core }) {
   try {
     const { applicationName, imageRepository } = validateApplicationConfig();
+    const filteredVars = filterDeploymentConfig(process.env.VARS);
+    const filteredSecrets = filterDeploymentConfig(process.env.SECRETS);
 
     const isTag = context.ref.startsWith("refs/tags/");
     const tag = isTag ? context.ref.replace("refs/tags/", "") : undefined;
 
     const config = {
+      vars: filteredVars,
+      secrets: filteredSecrets,
       is_production: isTag ? "true" : "false",
       tag: isTag ? tag : context.sha,
       environment: isTag

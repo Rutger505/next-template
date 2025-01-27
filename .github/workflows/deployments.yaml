@@ -41,7 +41,7 @@ jobs:
         env:
           APPLICATION_NAME: ${{ steps.env.outputs.application_name }}
           IMAGE_REPOSITORY: ${{ steps.env.outputs.image_repository }}
-          VARIABLES: ${{ toJSON(vars) }}
+          VARS: ${{ toJSON(vars) }}
           SECRETS: ${{ toJSON(secrets) }}
         with:
           script: |
