@@ -1,7 +1,7 @@
 // @ts-check
 
-const fs = require("fs");
-const path = require("path");
+import fs from "fs";
+import path from "path";
 
 /**
  * Reads the application.env file and returns its contents as an object
@@ -22,15 +22,15 @@ function readEnvFile() {
   return envVars;
 }
 
-/**
- * @param {import('@actions/github-script').AsyncFunctionArguments} AsyncFunctionArguments
- */
-export default async ({ core, context }) => {
+/** @param {import('@actions/github-script').AsyncFunctionArguments} AsyncFunctionArguments */
+export default function generateConfig({ context, core }) {
   try {
     const isTag = context.ref.startsWith("refs/tags/");
+    const tag = isTag ? context.ref.replace("refs/tags/", "") : undefined;
+
     const config = {
       is_production: isTag ? "true" : "false",
-      tag: isTag ? context.ref.replace("refs/tags/", "") : context.sha,
+      tag: isTag ? tag : context.sha,
       environment: isTag
         ? "production"
         : `pr-${context.payload.pull_request?.number}`,
@@ -71,4 +71,4 @@ export default async ({ core, context }) => {
     core.setFailed(error.message);
     throw error;
   }
-};
+}
