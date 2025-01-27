@@ -30,7 +30,7 @@ jobs:
         uses: actions/github-script@v6
         with:
           script: |
-            const { default: generateConfig } = await import('${{ github.workspace }}/.github/scripts/deployment/config.js');
+            const { default: generateConfig } = await import('${{ github.workspace }}/.github/scripts/deployment/config.ts');
 
             return await generateConfig({ core, context });
 
