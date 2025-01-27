@@ -25,12 +25,25 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      - name: Load application.env
+        id: env
+        run: |
+          source application.env
+
+          echo "application_name=$APPLICATION_NAME" >> $GITHUB_OUTPUT
+          echo "image_repository=$IMAGE_REPOSITORY" >> $GITHUB_OUTPUT
+
+          cat $GITHUB_OUTPUT
+
       - name: Configuration
         id: config
         uses: actions/github-script@v6
+        env:
+          APPLICATION_NAME: ${{ steps.env.outputs.application_name }}
+          IMAGE_REPOSITORY: ${{ steps.env.outputs.image_repository }}
         with:
           script: |
-            const { default: generateConfig } = await import('${{ github.workspace }}/.github/scripts/deployment/config.ts');
+            const { default: generateConfig } = await import('${{ github.workspace }}/.github/scripts/deployment/config.js');
 
             return await generateConfig({ core, context });
 
