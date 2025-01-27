@@ -77,19 +77,17 @@ export default async function generateConfig({ context, core }) {
       core.info(`${key}: ${value}`);
     });
 
-    await core.summary
-      .addHeader("Deployment Configuration", 2)
-      .addHeader("Configuration Values", 3)
-      .startTable()
-      .addHeaderRow(["Parameter", "Value"])
-      .configureAlignmentOptions(["left", "left"]);
-
-    // Add rows to table
-    Object.entries(outputs).forEach(([key, value]) => {
-      core.summary.addRow([key, value]);
-    });
-
-    await core.summary.finishTable().write();
+    const summary = `
+    # Deployment Configuration
+    | Parameter | Value |
+    | - | - |
+    ${Object.entries(outputs)
+      .map(([key, value]) => {
+        return `| ${key} | ${value} |`;
+      })
+      .join("\n")}
+    `;
+    await core.summary.addRaw(summary).addBreak().write();
 
     return outputs;
   } catch (error) {

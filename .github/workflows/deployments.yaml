@@ -47,104 +47,103 @@ jobs:
 
             return await generateConfig({ core, context });
 
-#
-#  build-docker-image:
-#    if: github.event.action != 'closed'
-#    name: Build Docker image
-#    needs: [configure]
-#    runs-on: ubuntu-latest
-#
-#    steps:
-#      - name: Checkout repository
-#        uses: actions/checkout@v4
-#
-#      - name: Set up Docker Buildx
-#        uses: docker/setup-buildx-action@v3
-#
-#      - name: Login to Docker Hub
-#        uses: docker/login-action@v3
-#        with:
-#          username: ${{ secrets.DOCKERHUB_USERNAME }}
-#          password: ${{ secrets.DOCKERHUB_TOKEN }}
-#
-#      - name: Build and push Docker image
-#        uses: docker/build-push-action@v6
-#        with:
-#          context: .
-#          push: true
-#          tags: ${{ needs.configure.outputs.image }}
-#          cache-from: |
-#            type=gha,scope=${{ github.ref_name }}
-#            type=gha,scope=development
-#            type=gha,scope=main
-#          cache-to: |
-#            type=gha,mode=max,scope=${{ github.ref_name }}
-#            ${{ startsWith(github.ref, 'refs/tags/') && 'type=gha,mode=max,scope=main' || '' }}
-#
-#  deploy-to-kubernetes:
-#    if: github.event.action != 'closed'
-#    name: Deploy to Kubernetes
-#    needs: [configure, build-docker-image]
-#    runs-on: ubuntu-latest
-#
-#    environment:
-#      name: ${{ needs.configure.outputs.environment }}
-#      url: https://${{ needs.configure.outputs.hostname }}
-#
-#    steps:
-#      - name: Checkout repository
-#        uses: actions/checkout@v4
-#
-#      - name: Setup Kubernetes
-#        uses: ./.github/actions/setup-k8s
-#        with:
-#          kubeconfig: ${{ secrets.KUBECONFIG }}
-#
-#      - name: OpenTofu Apply
-#        working-directory: ./deploy
-#        env:
-#          TF_VAR_application_name: ${{ needs.configure.outputs.application_name }}
-#          TF_VAR_image: ${{ needs.configure.outputs.image }}
-#          TF_VAR_hostname: ${{ needs.configure.outputs.hostname }}
-#          TF_VAR_certificate_issuer: ${{ needs.configure.outputs.certificate_issuer }}
-#          TF_VAR_config: ${{ toJSON(vars) }}
-#          TF_VAR_secrets: ${{ toJSON(secrets) }}
-#        run: |
-#          tofu init
-#          tofu workspace select -or-create ${{ needs.configure.outputs.environment }}
-#          tofu apply -input=false -auto-approve
-#
-#  destroy-pr-environment:
-#    if: github.event.action == 'closed'
-#      && needs.configure.outputs.is_production == 'false'
-#      && contains(needs.configure.outputs.environment, 'pr-')
-#    name: Destroy PR Environment
-#    needs: [configure]
-#    runs-on: ubuntu-latest
-#    environment:
-#      name: ${{ needs.configure.outputs.environment }}
-#
-#    steps:
-#      - name: Checkout repository
-#        uses: actions/checkout@v4
-#
-#      - name: Setup Kubernetes
-#        uses: ./.github/actions/setup-k8s
-#        with:
-#          kubeconfig: ${{ secrets.KUBECONFIG }}
-#
-#      - name: OpenTofu Destroy
-#        working-directory: ./deploy
-#        env:
-#          TF_VAR_application_name: ${{ needs.configure.outputs.application_name }}
-#          TF_VAR_image: ${{ needs.configure.outputs.image }}
-#          TF_VAR_hostname: ${{ needs.configure.outputs.hostname }}
-#          TF_VAR_certificate_issuer: ${{ needs.configure.outputs.certificate_issuer }}
-#          TF_VAR_config: ${{ toJSON(vars) }}
-#          TF_VAR_secrets: ${{ toJSON(secrets) }}
-#        run: |
-#          tofu init
-#          tofu workspace select ${{ needs.configure.outputs.environment }}
-#          tofu apply -input=false -auto-approve -destroy
-#          tofu workspace select default
-#          tofu workspace delete ${{ needs.configure.outputs.environment }}
+  build-docker-image:
+    if: github.event.action != 'closed'
+    name: Build Docker image
+    needs: [configure]
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: true
+          tags: ${{ needs.configure.outputs.image }}
+          cache-from: |
+            type=gha,scope=${{ github.ref_name }}
+            type=gha,scope=development
+            type=gha,scope=main
+          cache-to: |
+            type=gha,mode=max,scope=${{ github.ref_name }}
+            ${{ startsWith(github.ref, 'refs/tags/') && 'type=gha,mode=max,scope=main' || '' }}
+
+  deploy-to-kubernetes:
+    if: github.event.action != 'closed'
+    name: Deploy to Kubernetes
+    needs: [configure, build-docker-image]
+    runs-on: ubuntu-latest
+
+    environment:
+      name: ${{ needs.configure.outputs.environment }}
+      url: https://${{ needs.configure.outputs.hostname }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Kubernetes
+        uses: ./.github/actions/setup-k8s
+        with:
+          kubeconfig: ${{ secrets.KUBECONFIG }}
+
+      - name: OpenTofu Apply
+        working-directory: ./deploy
+        env:
+          TF_VAR_application_name: ${{ needs.configure.outputs.application_name }}
+          TF_VAR_image: ${{ needs.configure.outputs.image }}
+          TF_VAR_hostname: ${{ needs.configure.outputs.hostname }}
+          TF_VAR_certificate_issuer: ${{ needs.configure.outputs.certificate_issuer }}
+          TF_VAR_config: ${{ toJSON(vars) }}
+          TF_VAR_secrets: ${{ toJSON(secrets) }}
+        run: |
+          tofu init
+          tofu workspace select -or-create ${{ needs.configure.outputs.environment }}
+          tofu apply -input=false -auto-approve
+
+  destroy-pr-environment:
+    if: github.event.action == 'closed'
+      && needs.configure.outputs.is_production == 'false'
+      && contains(needs.configure.outputs.environment, 'pr-')
+    name: Destroy PR Environment
+    needs: [configure]
+    runs-on: ubuntu-latest
+    environment:
+      name: ${{ needs.configure.outputs.environment }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Kubernetes
+        uses: ./.github/actions/setup-k8s
+        with:
+          kubeconfig: ${{ secrets.KUBECONFIG }}
+
+      - name: OpenTofu Destroy
+        working-directory: ./deploy
+        env:
+          TF_VAR_application_name: ${{ needs.configure.outputs.application_name }}
+          TF_VAR_image: ${{ needs.configure.outputs.image }}
+          TF_VAR_hostname: ${{ needs.configure.outputs.hostname }}
+          TF_VAR_certificate_issuer: ${{ needs.configure.outputs.certificate_issuer }}
+          TF_VAR_config: ${{ toJSON(vars) }}
+          TF_VAR_secrets: ${{ toJSON(secrets) }}
+        run: |
+          tofu init
+          tofu workspace select ${{ needs.configure.outputs.environment }}
+          tofu apply -input=false -auto-approve -destroy
+          tofu workspace select default
+          tofu workspace delete ${{ needs.configure.outputs.environment }}
