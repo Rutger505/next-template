@@ -28,8 +28,6 @@ jobs:
       - name: Configuration
         id: config
         uses: actions/github-script@v6
-        env:
-          BASE_DOMAIN: ${{ vars.BASE_DOMAIN }}
         with:
           script: |
             const { default: generateConfig } = await import('${{ github.workspace }}/.github/scripts/deployment/config.js');
