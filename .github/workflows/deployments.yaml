@@ -116,6 +116,8 @@ jobs:
           TF_VAR_config: ${{ toJSON(vars) }}
           TF_VAR_secrets: ${{ toJSON(secrets) }}
         run: |
+
+          echo $TF_VAR_config 
           tofu init
           tofu workspace select -or-create ${{ needs.configure.outputs.environment }}
           tofu apply -input=false -auto-approve
