@@ -27,32 +27,13 @@ jobs:
 
       - name: Configuration
         id: config
-        run: |
-          if [[ $GITHUB_REF == refs/tags/* ]]; then
-            IS_PRODUCTION="true"
-            TAG=$GITHUB_REF_NAME
-            ENVIRONMENT="production"
-            HOSTNAME=${{ vars.BASE_DOMAIN }}
-            CERTIFICATE_ISSUER="letsencrypt-production"
-          else
-            IS_PRODUCTION="false"
-            TAG=$GITHUB_SHA
-            ENVIRONMENT="pr-${{ github.event.pull_request.number }}"
-            HOSTNAME=${{ github.sha }}.${{ vars.BASE_DOMAIN }}
-            CERTIFICATE_ISSUER="letsencrypt-staging"
-          fi
-
-          source ./application.env
-
-          echo "application_name=$APPLICATION_NAME" >> $GITHUB_OUTPUT
-          echo "environment=$ENVIRONMENT" >> $GITHUB_OUTPUT
-          echo "is_production=$IS_PRODUCTION" >> $GITHUB_OUTPUT
-          echo "image=$IMAGE_REPOSITORY:$TAG" >> $GITHUB_OUTPUT
-          echo "hostname=$HOSTNAME" >> $GITHUB_OUTPUT
-          echo "certificate_issuer=$CERTIFICATE_ISSUER" >> $GITHUB_OUTPUT
-
-          echo "Generated configuration:"
-          cat $GITHUB_OUTPUT
+        uses: actions/github-script@v6
+        env:
+          BASE_DOMAIN: ${{ vars.BASE_DOMAIN }}
+        with:
+          script: |
+            const config = require('${{ github.workspace }}/.github/scripts/deployment/config.js');
+            return await config({ core, context });
 
   build-docker-image:
     if: github.event.action != 'closed'
