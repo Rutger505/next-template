@@ -62,11 +62,12 @@ export default async function generateConfig({ context, core }) {
     const config = {
       vars: filteredVars,
       secrets: filteredSecrets,
-      is_production: isTag ? "true" : "false",
-      tag: isTag ? tag : context.sha,
+      application_name: applicationName,
       environment: isTag
         ? "production"
-        : `pr-${context.payload.pull_request?.number}`,
+        : `pr-${context.payload.pull_request.number}`,
+      is_production: isTag ? "true" : "false",
+      image: `${imageRepository}:${isTag ? tag : context.sha}`,
       hostname: isTag
         ? process.env.BASE_DOMAIN
         : `${context.sha}.${process.env.BASE_DOMAIN}`,
@@ -75,16 +76,7 @@ export default async function generateConfig({ context, core }) {
         : "letsencrypt-staging",
     };
 
-    const outputs = {
-      application_name: applicationName,
-      environment: config.environment,
-      is_production: config.is_production,
-      image: `${imageRepository}:${config.tag}`,
-      hostname: config.hostname,
-      certificate_issuer: config.certificate_issuer,
-    };
-
-    Object.entries(outputs).forEach(([key, value]) => {
+    Object.entries(config).forEach(([key, value]) => {
       core.setOutput(key, value);
       core.info(`${key}: ${value}`);
     });
@@ -93,7 +85,7 @@ export default async function generateConfig({ context, core }) {
 # Deployment Configuration 🚀
 | Parameter | Value |
 | - | - |
-${Object.entries(outputs)
+${Object.entries(config)
   .map(([key, value]) => {
     return `| ${key} | ${value} |`;
   })
@@ -101,7 +93,7 @@ ${Object.entries(outputs)
     `;
     await core.summary.addRaw(summary).write();
 
-    return outputs;
+    return config;
   } catch (error) {
     if (error instanceof Error) {
       core.setFailed(error.message);
