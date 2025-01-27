@@ -78,14 +78,14 @@ export default async function generateConfig({ context, core }) {
     });
 
     const summary = `
-    # Deployment Configuration
-    | Parameter | Value |
-    | - | - |
-    ${Object.entries(outputs)
-      .map(([key, value]) => {
-        return `| ${key} | ${value} |`;
-      })
-      .join("\n")}
+# Deployment Configuration 🚀
+| Parameter | Value |
+| - | - |
+${Object.entries(outputs)
+  .map(([key, value]) => {
+    return `| ${key} | ${value} |`;
+  })
+  .join("\n")}
     `;
     await core.summary.addRaw(summary).addBreak().write();
 
