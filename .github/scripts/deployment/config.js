@@ -78,7 +78,7 @@ export default async function generateConfig({ context, core }) {
 
     Object.entries(config).forEach(([key, value]) => {
       core.setOutput(key, value);
-      core.info(`${key}: ${value}`);
+      core.info(`${key}: ${JSON.stringify(value, null, 2)}`);
     });
 
     const summary = `
@@ -87,7 +87,7 @@ export default async function generateConfig({ context, core }) {
 | - | - |
 ${Object.entries(config)
   .map(([key, value]) => {
-    return `| ${key} | ${value} |`;
+    return `| ${key} | ${JSON.stringify(value, null, 2)} |`;
   })
   .join("\n")}
     `;
