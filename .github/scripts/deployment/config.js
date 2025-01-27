@@ -45,16 +45,6 @@ export default function generateConfig({ context, core }) {
     // Read application.env file
     const envVars = readEnvFile();
 
-    // Set outputs
-    core.setOutput("application_name", envVars.APPLICATION_NAME);
-    core.setOutput("environment", config.environment);
-    core.setOutput("is_production", config.is_production);
-    core.setOutput("image", `${envVars.IMAGE_REPOSITORY}:${config.tag}`);
-    core.setOutput("hostname", config.hostname);
-    core.setOutput("certificate_issuer", config.certificate_issuer);
-
-    // Log the configuration
-    core.info("Generated configuration:");
     const outputs = {
       application_name: envVars.APPLICATION_NAME,
       environment: config.environment,
@@ -64,7 +54,10 @@ export default function generateConfig({ context, core }) {
       certificate_issuer: config.certificate_issuer,
     };
 
-    core.info(JSON.stringify(outputs, null, 2));
+    Object.entries(outputs).forEach(([key, value]) => {
+      core.setOutput(key, value);
+      core.info(`${key}: ${value}`);
+    });
 
     return outputs;
   } catch (error) {
