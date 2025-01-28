@@ -22,6 +22,7 @@ jobs:
       certificate_issuer: ${{ steps.config.outputs.certificate_issuer }}
       config: ${{ steps.config.outputs.vars }}
       secrets: ${{ steps.config.outputs.secrets }}
+      secretsStringified: ${{ steps.config.outputs.secretsStringified }}
 
     steps:
       - name: Checkout repository
@@ -42,10 +43,10 @@ jobs:
         uses: actions/github-script@v6
         env:
           BASE_DOMAIN: ${{ vars.BASE_DOMAIN }}
-          VARS: ${{ toJSON(vars) }}
-          SECRETS: ${{ toJSON(secrets) }}
           APPLICATION_NAME: ${{ steps.env.outputs.application_name }}
           IMAGE_REPOSITORY: ${{ steps.env.outputs.image_repository }}
+          VARS: ${{ toJSON(vars) }}
+          SECRETS: ${{ toJSON(secrets) }}
         with:
           script: |
             const { default: generateConfig } = await import('${{ github.workspace }}/.github/scripts/deployment/config.mjs');
@@ -101,6 +102,11 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+
+      - name: Debug output secrets
+        run: |
+          echo ${{ needs.configure.outputs.secrets }}
+          echo ${{ needs.configure.outputs.secretsStringified }}
 
       - name: Setup Kubernetes
         uses: ./.github/actions/setup-k8s

@@ -78,6 +78,7 @@ export default async function generateConfig({ context, core }) {
     const config = {
       vars: filteredVars,
       secrets: filteredSecrets,
+      secretsStringified: JSON.stringify(filteredSecrets),
       application_name: applicationName,
       environment: isTag
         ? "production"
