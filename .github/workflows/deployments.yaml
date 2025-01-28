@@ -47,7 +47,7 @@ jobs:
           SECRETS: ${{ toJSON(secrets) }}
         with:
           script: |
-            const { default: generateConfig } = await import('${{ github.workspace }}/.github/scripts/deployment/config.js');
+            const { default: generateConfig } = await import('${{ github.workspace }}/.github/scripts/deployment/config.mjs');
 
             return await generateConfig({ core, context });
 
