@@ -22,7 +22,6 @@ jobs:
       certificate_issuer: ${{ steps.config.outputs.certificate_issuer }}
       config: ${{ steps.config.outputs.vars }}
       secrets: ${{ steps.config.outputs.secrets }}
-      secretsStringified: ${{ steps.config.outputs.secretsStringified }}
 
     steps:
       - name: Checkout repository
@@ -106,7 +105,6 @@ jobs:
       - name: Debug output secrets
         run: |
           echo ${{ needs.configure.outputs.secrets }}
-          echo ${{ needs.configure.outputs.secretsStringified }}
 
       - name: Setup Kubernetes
         uses: ./.github/actions/setup-k8s

@@ -50,17 +50,6 @@ function filterDeploymentConfig(jsonObject) {
   return Object.fromEntries(deploymentValues);
 }
 
-function formatValue(value) {
-  if (typeof value === "string") {
-    return value;
-  }
-  if (typeof value === "number") {
-    return value.toString();
-  }
-
-  return `<pre>${JSON.stringify(value, null, 2).replace(/\n/g, "<br>")}</pre>`;
-}
-
 /**
  * @param {Object} params
  * @param {Context} params.context
@@ -76,9 +65,8 @@ export default async function generateConfig({ context, core }) {
     const tag = isTag ? context.ref.replace("refs/tags/", "") : undefined;
 
     const config = {
-      vars: filteredVars,
-      secrets: filteredSecrets,
-      secretsStringified: JSON.stringify(filteredSecrets),
+      vars: JSON.stringify(filteredVars),
+      secrets: JSON.stringify(filteredSecrets),
       application_name: applicationName,
       environment: isTag
         ? "production"
@@ -95,7 +83,7 @@ export default async function generateConfig({ context, core }) {
 
     Object.entries(config).forEach(([key, value]) => {
       core.setOutput(key, value);
-      core.info(`${key}: ${formatValue(value)}`);
+      core.info(`${key}: ${value}`);
     });
 
     const summary = `
@@ -104,7 +92,7 @@ export default async function generateConfig({ context, core }) {
 | - | - |
 ${Object.entries(config)
   .map(([key, value]) => {
-    return `| ${key} | ${formatValue(value)} |`;
+    return `| ${key} | ${value} |`;
   })
   .join("\n")}
     `;
