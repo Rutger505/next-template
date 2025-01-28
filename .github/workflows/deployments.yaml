@@ -41,8 +41,8 @@ jobs:
         env:
           APPLICATION_NAME: ${{ steps.env.outputs.application_name }}
           IMAGE_REPOSITORY: ${{ steps.env.outputs.image_repository }}
-          VARS: ${{ toJSON(vars) }}
-          SECRETS: ${{ toJSON(secrets) }}
+          VARS: ${{ toJSON(fromJSON(vars) | selectKeys(startsWith(., 'DEPLOYMENT_')) | mapKeys(replace(., '^DEPLOYMENT_', ''))) }}
+          SECRETS: ${{ toJSON(fromJSON(secrets) | selectKeys(startsWith(., 'DEPLOYMENT_')) | mapKeys(replace(., '^DEPLOYMENT_', ''))) }}
         with:
           script: |
             const { default: generateConfig } = await import('${{ github.workspace }}/.github/scripts/deployment/config.js');
