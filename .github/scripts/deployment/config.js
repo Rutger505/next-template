@@ -38,9 +38,14 @@ function validateApplicationConfig() {
 }
 
 function filterDeploymentConfig(jsonObject) {
-  const deploymentValues = Object.entries(jsonObject).filter(([key]) =>
-    key.startsWith("DEPLOYMENT_"),
-  );
+  const parcedObject = JSON.parse(jsonObject);
+
+  const deploymentValues = Object.entries(parcedObject)
+    .filter(([key]) => key.startsWith("DEPLOYMENT_"))
+    .map(([key, value]) => {
+      const newKey = key.replace("DEPLOYMENT_", "");
+      return [newKey, value];
+    });
 
   return Object.fromEntries(deploymentValues);
 }
