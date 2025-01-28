@@ -105,6 +105,9 @@ jobs:
       - name: Debug output secrets
         run: |
           echo ${{ needs.configure.outputs.secrets }}
+      - name: Debug output config
+        run: |
+          echo ${{ needs.configure.outputs.config }}
 
       - name: Setup Kubernetes
         uses: ./.github/actions/setup-k8s
