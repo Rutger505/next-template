@@ -45,6 +45,11 @@ jobs:
           SECRETS: ${{ toJSON(fromJSON(secrets) | selectKeys(startsWith(., 'DEPLOYMENT_')) | mapKeys(replace(., '^DEPLOYMENT_', ''))) }}
         with:
           script: |
+            const vars = process.env.VARS;
+            const secrets = process.env.SECRETS;
+
+            console.log(vars, secrets);
+
             const { default: generateConfig } = await import('${{ github.workspace }}/.github/scripts/deployment/config.js');
 
             return await generateConfig({ core, context });
