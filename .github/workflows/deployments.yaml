@@ -41,10 +41,11 @@ jobs:
         id: config
         uses: actions/github-script@v6
         env:
-          APPLICATION_NAME: ${{ steps.env.outputs.application_name }}
-          IMAGE_REPOSITORY: ${{ steps.env.outputs.image_repository }}
+          BASE_DOMAIN: ${{ vars.BASE_DOMAIN }}
           VARS: ${{ toJSON(vars) }}
           SECRETS: ${{ toJSON(secrets) }}
+          APPLICATION_NAME: ${{ steps.env.outputs.application_name }}
+          IMAGE_REPOSITORY: ${{ steps.env.outputs.image_repository }}
         with:
           script: |
             const { default: generateConfig } = await import('${{ github.workspace }}/.github/scripts/deployment/config.mjs');
