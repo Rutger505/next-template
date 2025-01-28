@@ -58,7 +58,7 @@ function formatValue(value) {
     return value.toString();
   }
 
-  return JSON.stringify(value, null, 2);
+  return `<pre>${JSON.stringify(value, null, 2).replace(/\n/g, "<br>")}</pre>`;
 }
 
 /**
