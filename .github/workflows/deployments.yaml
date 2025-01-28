@@ -20,6 +20,8 @@ jobs:
       image: ${{ steps.config.outputs.image }}
       hostname: ${{ steps.config.outputs.hostname }}
       certificate_issuer: ${{ steps.config.outputs.certificate_issuer }}
+      config: ${{ steps.config.outputs.vars }}
+      secrets: ${{ steps.config.outputs.secrets }}
 
     steps:
       - name: Checkout repository
@@ -48,9 +50,6 @@ jobs:
             const { default: generateConfig } = await import('${{ github.workspace }}/.github/scripts/deployment/config.js');
 
             return await generateConfig({ core, context });
-
-      - name: Exit
-        run: exit 1
 
   build-docker-image:
     if: github.event.action != 'closed'
@@ -111,8 +110,8 @@ jobs:
           TF_VAR_image: ${{ needs.configure.outputs.image }}
           TF_VAR_hostname: ${{ needs.configure.outputs.hostname }}
           TF_VAR_certificate_issuer: ${{ needs.configure.outputs.certificate_issuer }}
-          TF_VAR_config: ${{ toJSON(vars) }}
-          TF_VAR_secrets: ${{ toJSON(secrets) }}
+          TF_VAR_config: ${{ needs.configure.outputs.config }}
+          TF_VAR_secrets: ${{ needs.configure.outputs.secrets }}
         run: |
           tofu init
           tofu workspace select -or-create ${{ needs.configure.outputs.environment }}
@@ -144,8 +143,8 @@ jobs:
           TF_VAR_image: ${{ needs.configure.outputs.image }}
           TF_VAR_hostname: ${{ needs.configure.outputs.hostname }}
           TF_VAR_certificate_issuer: ${{ needs.configure.outputs.certificate_issuer }}
-          TF_VAR_config: ${{ toJSON(vars) }}
-          TF_VAR_secrets: ${{ toJSON(secrets) }}
+          TF_VAR_config: ${{ needs.configure.outputs.config }}
+          TF_VAR_secrets: ${{ needs.configure.outputs.secrets }}
         run: |
           tofu init
           tofu workspace select ${{ needs.configure.outputs.environment }}
