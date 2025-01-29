@@ -55,6 +55,12 @@ jobs:
       - name: log image
         run: echo ${{ steps.config.outputs.image }}
 
+      - name: log config
+        run: echo ${{ steps.config.outputs.vars }}
+
+      - name: log secrets
+        run: echo ${{ steps.config.outputs.secrets }}
+
   build-docker-image:
     if: github.event.action != 'closed'
     name: Build Docker image
