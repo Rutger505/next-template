@@ -27,6 +27,6 @@ cp .env.example .env
 - `DOCKERHUB_TOKEN` - Dockerhub password
 -
 
-### Deployments
+## Deployments
 
 To configure deployment variables. create a github variable or secret and prefix it with `DEPLOYMENT_`.
