@@ -4,7 +4,7 @@ Next.js template for my personal needs.
 
 ## Getting started
 
-### Configuration
+### Installation and Configuration
 
 In the [application.env](application.env) file you can find:
 
@@ -17,8 +17,16 @@ Copy the [.env.example](.env.example) file to a new file `.env` and fill in the 
 cp .env.example .env
 ```
 
-### Variables
+#### Variables
 
-- `DISCORD_WEBHOOK_URL` - Discord webhook url for deployment messages
 - `DOCKERHUB_USERNAME` - Dockerhub username
+
+#### Secrets
+
+- `DEPLOYMENT_DISCORD_WEBHOOK_URL` - Discord webhook url for deployment messages
 - `DOCKERHUB_TOKEN` - Dockerhub password
+-
+
+## Deployments
+
+To configure deployment variables. create a github variable or secret and prefix it with `DEPLOYMENT_`.
