@@ -25,7 +25,7 @@ export default async function generateDeploymentVr({ core }) {
 
     Object.entries(config).forEach(([key, value]) => {
       core.setOutput(key, value);
-      core.info(`${key}: ${value}`);
+      core.info(`${key}: ${JSON.stringify(value)}`);
     });
 
     return config;

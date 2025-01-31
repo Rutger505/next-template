@@ -111,11 +111,6 @@ jobs:
             const { default: generateDeploymentVariables } = await import('${{ github.workspace }}/.github/scripts/deployment/deployment-variables.mjs');
             return await generateDeploymentVariables({ core });
 
-      - name: Debug test secrets
-        run: |
-          echo ${{ steps.env.outputs.vars }}
-          echo ${{ steps.env.outputs.secrets }}
-
       - name: OpenTofu Apply
         working-directory: ./deploy
         env:
@@ -123,7 +118,7 @@ jobs:
           TF_VAR_image: ${{ needs.configure.outputs.image }}
           TF_VAR_hostname: ${{ needs.configure.outputs.hostname }}
           TF_VAR_certificate_issuer: ${{ needs.configure.outputs.certificate_issuer }}
-          TF_VAR_config: ${{ steps.env.outputs.config }}
+          TF_VAR_config: ${{ steps.env.outputs.vars }}
           TF_VAR_secrets: ${{ steps.env.outputs.secrets }}
         run: |
           tofu init
