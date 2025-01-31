@@ -37,19 +37,6 @@ function validateApplicationConfig() {
   };
 }
 
-function filterDeploymentConfig(jsonObject) {
-  const parcedObject = JSON.parse(jsonObject);
-
-  const deploymentValues = Object.entries(parcedObject)
-    .filter(([key]) => key.startsWith("DEPLOYMENT_"))
-    .map(([key, value]) => {
-      const newKey = key.replace("DEPLOYMENT_", "");
-      return [newKey, value];
-    });
-
-  return Object.fromEntries(deploymentValues);
-}
-
 /**
  * @param {Object} params
  * @param {Context} params.context
@@ -58,15 +45,11 @@ function filterDeploymentConfig(jsonObject) {
 export default async function generateConfig({ context, core }) {
   try {
     const { applicationName, imageRepository } = validateApplicationConfig();
-    const filteredVars = filterDeploymentConfig(process.env.VARS);
-    const filteredSecrets = filterDeploymentConfig(process.env.SECRETS);
 
     const isTag = context.ref.startsWith("refs/tags/");
     const tag = isTag ? context.ref.replace("refs/tags/", "") : undefined;
 
     const config = {
-      vars: JSON.stringify(filteredVars),
-      secrets: JSON.stringify(filteredSecrets),
       application_name: applicationName,
       environment: isTag
         ? "production"

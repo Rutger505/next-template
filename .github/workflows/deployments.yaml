@@ -39,13 +39,11 @@ jobs:
 
       - name: Configuration
         id: config
-        uses: actions/github-script@v6
+        uses: actions/github-script@v7
         env:
           BASE_DOMAIN: ${{ vars.BASE_DOMAIN }}
           APPLICATION_NAME: ${{ steps.env.outputs.application_name }}
           IMAGE_REPOSITORY: ${{ steps.env.outputs.image_repository }}
-          VARS: ${{ toJSON(vars) }}
-          SECRETS: ${{ toJSON(secrets) }}
         with:
           script: |
             const { default: generateConfig } = await import('${{ github.workspace }}/.github/scripts/deployment/config.mjs');
@@ -108,15 +106,25 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Debug test secrets
-        env:
-          SECRETS: ${{ secrets | select(key => startsWith(key, 'DEPLOYMENT_')) | map(key => { key: key, value: secrets[key] }) | join(', ') | format('{[%s]}') }}
-        run: echo $SECRETS
-
       - name: Setup Kubernetes
         uses: ./.github/actions/setup-k8s
         with:
           kubeconfig: ${{ secrets.KUBECONFIG }}
+
+      - name: Generate deployment environment variables
+        id: env
+        uses: actions/github-script@v7
+        env:
+          SECRETS: ${{ toJSON(secrets) }}
+          VARS: ${{ toJSON(vars) }}
+        with:
+          script: |
+            const { default: generateDeploymentVariables } = await import('${{ github.workspace }}/.github/scripts/deployment/deployment-variables.mjs');
+            return await generateDeploymentVariables({ core });
+
+      - name: Debug test secrets
+        run: |
+          echo ${{ steps.env.outputs.result }}
 
       - name: OpenTofu Apply
         working-directory: ./deploy
