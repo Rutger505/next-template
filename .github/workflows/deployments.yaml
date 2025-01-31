@@ -20,8 +20,6 @@ jobs:
       image: ${{ steps.config.outputs.image }}
       hostname: ${{ steps.config.outputs.hostname }}
       certificate_issuer: ${{ steps.config.outputs.certificate_issuer }}
-      config: ${{ steps.config.outputs.vars }}
-      secrets: ${{ steps.config.outputs.secrets }}
 
     steps:
       - name: Checkout repository
@@ -125,8 +123,8 @@ jobs:
           TF_VAR_image: ${{ needs.configure.outputs.image }}
           TF_VAR_hostname: ${{ needs.configure.outputs.hostname }}
           TF_VAR_certificate_issuer: ${{ needs.configure.outputs.certificate_issuer }}
-          TF_VAR_config: ${{ needs.configure.outputs.config }}
-          TF_VAR_secrets: ${{ needs.configure.outputs.secrets }}
+          TF_VAR_config: ${{ steps.env.outputs.config }}
+          TF_VAR_secrets: ${{ steps.env.outputs.secrets }}
         run: |
           tofu init
           tofu workspace select -or-create ${{ needs.configure.outputs.environment }}
@@ -158,8 +156,6 @@ jobs:
           TF_VAR_image: ${{ needs.configure.outputs.image }}
           TF_VAR_hostname: ${{ needs.configure.outputs.hostname }}
           TF_VAR_certificate_issuer: ${{ needs.configure.outputs.certificate_issuer }}
-          TF_VAR_config: ${{ needs.configure.outputs.config }}
-          TF_VAR_secrets: ${{ needs.configure.outputs.secrets }}
         run: |
           tofu init
           tofu workspace select ${{ needs.configure.outputs.environment }}
