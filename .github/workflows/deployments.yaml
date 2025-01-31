@@ -108,12 +108,10 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Debug output secrets
-        run: |
-          echo ${{ needs.configure.outputs.secrets }}
-      - name: Debug output config
-        run: |
-          echo ${{ needs.configure.outputs.config }}
+      - name: Debug test secrets
+        env:
+          SECRETS: ${{ secrets | select(key => startsWith(key, 'DEPLOYMENT_')) | map(key => { key: key, value: secrets[key] }) | join(', ') | format('{[%s]}') }}
+        run: echo $SECRETS
 
       - name: Setup Kubernetes
         uses: ./.github/actions/setup-k8s
