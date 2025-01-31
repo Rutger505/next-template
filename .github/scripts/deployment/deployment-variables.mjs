@@ -13,15 +13,22 @@ function filterDeploymentConfig(jsonObject) {
   return Object.fromEntries(deploymentValues);
 }
 
-export default async function generateDeploymentVariables({ core }) {
+export default async function generateDeploymentVr({ core }) {
   try {
     const filteredVars = filterDeploymentConfig(process.env.VARS);
     const filteredSecrets = filterDeploymentConfig(process.env.SECRETS);
 
-    return {
-      ...filteredVars,
-      ...filteredSecrets,
+    const config = {
+      vars: filteredVars,
+      secrets: filteredSecrets,
     };
+
+    Object.entries(config).forEach(([key, value]) => {
+      core.setOutput(key, value);
+      core.info(`${key}: ${value}`);
+    });
+
+    return config;
   } catch (error) {
     if (error instanceof Error) {
       core.setFailed(error.message);

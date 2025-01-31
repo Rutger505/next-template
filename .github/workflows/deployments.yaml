@@ -50,15 +50,6 @@ jobs:
 
             return await generateConfig({ core, context });
 
-      - name: log image
-        run: echo ${{ steps.config.outputs.image }}
-
-      - name: log config
-        run: echo ${{ steps.config.outputs.vars }}
-
-      - name: log secrets
-        run: echo ${{ steps.config.outputs.secrets }}
-
   build-docker-image:
     if: github.event.action != 'closed'
     name: Build Docker image
@@ -124,7 +115,8 @@ jobs:
 
       - name: Debug test secrets
         run: |
-          echo ${{ steps.env.outputs.result }}
+          echo ${{ steps.env.outputs.vars }}
+          echo ${{ steps.env.outputs.secrets }}
 
       - name: OpenTofu Apply
         working-directory: ./deploy
