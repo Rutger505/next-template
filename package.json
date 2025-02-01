@@ -3,14 +3,15 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "bun --bun next dev --turbopack",
-    "build": "bun --bun next build",
-    "start": "bun --bun next start",
-    "lint": "bun --bun next lint",
-    "db:push": "bun --bun drizzle-kit push",
-    "db:studio": "bun --bun drizzle-kit studio",
-    "db:generate": "bun --bun drizzle-kit generate",
-    "db:migrate": "bun --bun drizzle-kit migrate"
+    "bun": "bun --bun",
+    "dev": "bun run bun next dev --turbopack",
+    "build": "bun run bun next build",
+    "start": "bun run bun next start",
+    "lint": "bun run bun next lint",
+    "db:push": "bun run bun drizzle-kit push",
+    "db:studio": "bun run bun drizzle-kit studio",
+    "db:generate": "bun run bun drizzle-kit generate",
+    "db:migrate": "bun run bun drizzle-kit migrate"
   },
   "dependencies": {
     "@auth/drizzle-adapter": "^1.7.2",
