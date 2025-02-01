@@ -5,7 +5,10 @@ export const env = createEnv({
   server: {
     DISCORD_WEBHOOK_URL: z.string().url(),
     DATABASE_SQLITE_PATH: z.string(),
-    NODE_ENV: z.enum(["development", "test", "production"]),
+    NODE_ENV: z
+      .enum(["development", "test", "production"])
+      .optional()
+      .default("development"),
   },
   // Prefixed with NEXT_PUBLIC_
   client: {},
