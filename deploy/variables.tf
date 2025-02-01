@@ -30,3 +30,15 @@ variable "replicas" {
   default     = 1
 }
 
+variable "secrets" {
+  description = "Secret key-value pairs"
+  type        = map(string)
+  sensitive   = true
+  default     = {}
+}
+
+variable "config" {
+  description = "Config key-value pairs"
+  type        = map(string)
+  default     = {}
+}

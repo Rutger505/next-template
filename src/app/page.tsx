@@ -1,3 +1,4 @@
+import { sendDiscordMessage } from "@/lib/discord";
 import Image from "next/image";
 
 export default function Home() {
@@ -48,6 +49,24 @@ export default function Home() {
             Read our docs
           </a>
         </div>
+
+        <form
+          className="flex flex-col items-center gap-4 sm:flex-row"
+          action={async () => {
+            "use server";
+
+            await sendDiscordMessage(
+              "Hi there! This is a test message from Next.js",
+            );
+          }}
+        >
+          <button
+            type="submit"
+            className="flex h-10 items-center justify-center gap-2 rounded-full border border-solid border-transparent bg-foreground px-4 text-sm text-background transition-colors hover:bg-[#383838] sm:h-12 sm:px-5 sm:text-base dark:hover:bg-[#ccc]"
+          >
+            Send a message to Discord
+          </button>
+        </form>
       </main>
       <footer className="row-start-3 flex flex-wrap items-center justify-center gap-6">
         <a
@@ -93,7 +112,7 @@ export default function Home() {
             width={16}
             height={16}
           />
-          Go  to nextjs.org →
+          Go to nextjs.org →
         </a>
       </footer>
     </div>

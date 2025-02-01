@@ -25,34 +25,28 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Configuration
-        id: config
+      - name: Load application.env
+        id: env
         run: |
-          if [[ $GITHUB_REF == refs/tags/* ]]; then
-            IS_PRODUCTION="true"
-            TAG=$GITHUB_REF_NAME
-            ENVIRONMENT="production"
-            HOSTNAME=${{ vars.BASE_DOMAIN }}
-            CERTIFICATE_ISSUER="letsencrypt-production"
-          else
-            IS_PRODUCTION="false"
-            TAG=$GITHUB_SHA
-            ENVIRONMENT="pr-${{ github.event.pull_request.number }}"
-            HOSTNAME=${{ github.sha }}.${{ vars.BASE_DOMAIN }}
-            CERTIFICATE_ISSUER="letsencrypt-staging"
-          fi
-
-          source ./application.env
+          source application.env
 
           echo "application_name=$APPLICATION_NAME" >> $GITHUB_OUTPUT
-          echo "environment=$ENVIRONMENT" >> $GITHUB_OUTPUT
-          echo "is_production=$IS_PRODUCTION" >> $GITHUB_OUTPUT
-          echo "image=$IMAGE_REPOSITORY:$TAG" >> $GITHUB_OUTPUT
-          echo "hostname=$HOSTNAME" >> $GITHUB_OUTPUT
-          echo "certificate_issuer=$CERTIFICATE_ISSUER" >> $GITHUB_OUTPUT
+          echo "image_repository=$IMAGE_REPOSITORY" >> $GITHUB_OUTPUT
 
-          echo "Generated configuration:"
           cat $GITHUB_OUTPUT
+
+      - name: Configuration
+        id: config
+        uses: actions/github-script@v7
+        env:
+          BASE_DOMAIN: ${{ vars.BASE_DOMAIN }}
+          APPLICATION_NAME: ${{ steps.env.outputs.application_name }}
+          IMAGE_REPOSITORY: ${{ steps.env.outputs.image_repository }}
+        with:
+          script: |
+            const { default: generateConfig } = await import('${{ github.workspace }}/.github/scripts/deployment/config.mjs');
+
+            return await generateConfig({ core, context });
 
   build-docker-image:
     if: github.event.action != 'closed'
@@ -70,7 +64,7 @@ jobs:
       - name: Login to Docker Hub
         uses: docker/login-action@v3
         with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          username: ${{ vars.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
       - name: Build and push Docker image
@@ -106,6 +100,17 @@ jobs:
         with:
           kubeconfig: ${{ secrets.KUBECONFIG }}
 
+      - name: Generate deployment environment variables
+        id: env
+        uses: actions/github-script@v7
+        env:
+          SECRETS: ${{ toJSON(secrets) }}
+          VARS: ${{ toJSON(vars) }}
+        with:
+          script: |
+            const { default: generateDeploymentVariables } = await import('${{ github.workspace }}/.github/scripts/deployment/deployment-variables.mjs');
+            return await generateDeploymentVariables({ core });
+
       - name: OpenTofu Apply
         working-directory: ./deploy
         env:
@@ -113,10 +118,12 @@ jobs:
           TF_VAR_image: ${{ needs.configure.outputs.image }}
           TF_VAR_hostname: ${{ needs.configure.outputs.hostname }}
           TF_VAR_certificate_issuer: ${{ needs.configure.outputs.certificate_issuer }}
+          TF_VAR_config: ${{ steps.env.outputs.vars }}
+          TF_VAR_secrets: ${{ steps.env.outputs.secrets }}
         run: |
           tofu init
           tofu workspace select -or-create ${{ needs.configure.outputs.environment }}
-          tofu apply -input=false -auto-approve 
+          tofu apply -input=false -auto-approve
 
   destroy-pr-environment:
     if: github.event.action == 'closed'

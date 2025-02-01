@@ -30,6 +30,7 @@
     "zod": "^3.24.1"
   },
   "devDependencies": {
+    "@actions/github-script": "github:actions/github-script",
     "@eslint/eslintrc": "^3",
     "@types/node": "^20",
     "@types/react": "^19",

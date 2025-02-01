@@ -14,9 +14,7 @@ resource "kubernetes_config_map" "app" {
     namespace = kubernetes_namespace.app.metadata[0].name
   }
 
-  data = {
-    # add config here
-  }
+  data = var.config
 }
 
 # Secret
@@ -28,9 +26,7 @@ resource "kubernetes_secret" "app" {
     namespace = kubernetes_namespace.app.metadata[0].name
   }
 
-  data = {
-    # add secrets here
-  }
+  data = var.secrets
 }
 
 # Deployment
