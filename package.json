@@ -6,7 +6,11 @@
     "dev": "next dev --turbopack",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "db:push": "drizzle-kit push",
+    "db:studio": "drizzle-kit studio",
+    "db:generate": "drizzle-kit generate",
+    "db:migrate": "drizzle-kit migrate"
   },
   "dependencies": {
     "@auth/drizzle-adapter": "^1.7.4",
@@ -16,6 +20,7 @@
     "@trpc/react-query": "^10.45.2",
     "@trpc/server": "^10.45.2",
     "axios": "^1.7.9",
+    "drizzle-orm": "^0.39.1",
     "next": "15.1.4",
     "next-auth": "^4.24.11",
     "react": "^19.0.0",
@@ -29,9 +34,11 @@
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "drizzle-kit": "^0.30.4",
     "eslint": "^9",
     "eslint-config-next": "15.1.4",
     "eslint-config-prettier": "^10.0.1",
+    "eslint-plugin-drizzle": "^0.2.3",
     "postcss": "^8",
     "prettier": "^3.4.2",
     "prettier-plugin-organize-imports": "^4.1.0",
