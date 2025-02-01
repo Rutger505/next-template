@@ -6,7 +6,7 @@ export default {
   schema: "./src/server/db/schema.ts",
   dialect: "sqlite",
   dbCredentials: {
-    url: env.DATABASE_URL, // TODO
+    url: env.DATABASE_SQLITE_PATH,
   },
   tablesFilter: ["project1_*"], // TODO
 } satisfies Config;

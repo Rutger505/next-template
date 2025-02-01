@@ -3,7 +3,7 @@ import {
   index,
   int,
   primaryKey,
-  sqliteTableCreator,
+  sqliteTable,
   text,
 } from "drizzle-orm/sqlite-core";
 import { type AdapterAccount } from "next-auth/adapters";
@@ -14,9 +14,8 @@ import { type AdapterAccount } from "next-auth/adapters";
  *
  * @see https://orm.drizzle.team/docs/goodies#multi-project-schema
  */
-export const createTable = sqliteTableCreator((name) => `project1_${name}`); // TODO
 
-export const posts = createTable(
+export const posts = sqliteTable(
   "post",
   {
     id: int("id", { mode: "number" }).primaryKey({ autoIncrement: true }),
@@ -37,7 +36,7 @@ export const posts = createTable(
   }),
 );
 
-export const users = createTable("user", {
+export const users = sqliteTable("user", {
   id: text("id", { length: 255 })
     .notNull()
     .primaryKey()
@@ -54,7 +53,7 @@ export const usersRelations = relations(users, ({ many }) => ({
   accounts: many(accounts),
 }));
 
-export const accounts = createTable(
+export const accounts = sqliteTable(
   "account",
   {
     userId: text("user_id", { length: 255 })
@@ -85,7 +84,7 @@ export const accountsRelations = relations(accounts, ({ one }) => ({
   user: one(users, { fields: [accounts.userId], references: [users.id] }),
 }));
 
-export const sessions = createTable(
+export const sessions = sqliteTable(
   "session",
   {
     sessionToken: text("session_token", { length: 255 }).notNull().primaryKey(),
@@ -103,7 +102,7 @@ export const sessionsRelations = relations(sessions, ({ one }) => ({
   user: one(users, { fields: [sessions.userId], references: [users.id] }),
 }));
 
-export const verificationTokens = createTable(
+export const verificationTokens = sqliteTable(
   "verification_token",
   {
     identifier: text("identifier", { length: 255 }).notNull(),
