@@ -1,4 +1,4 @@
-import { LatestPost } from "@/app/_components/post";
+import { Posts } from "@/app/_components/posts";
 import { sendDiscordMessage } from "@/lib/discord";
 import Image from "next/image";
 
@@ -69,7 +69,7 @@ export default function Home() {
           </button>
         </form>
 
-        <LatestPost />
+        <Posts />
       </main>
       <footer className="row-start-3 flex flex-wrap items-center justify-center gap-6">
         <a
