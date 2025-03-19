@@ -40,8 +40,15 @@ declare module "next-auth" {
 export const authConfig = {
   providers: [
     Nodemailer({
-      server: env.AUTH_EMAIL_SERVER,
       from: env.AUTH_EMAIL_FROM,
+      server: {
+        host: env.AUTH_EMAIL_HOST,
+        port: env.AUTH_EMAIL_PORT,
+        auth: {
+          user: env.AUTH_EMAIL_USER,
+          pass: env.AUTH_EMAIL_PASSWORD,
+        },
+      },
     }),
   ],
   adapter: DrizzleAdapter(db, {

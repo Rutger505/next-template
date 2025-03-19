@@ -9,8 +9,12 @@ export const env = createEnv({
       .enum(["development", "test", "production"])
       .optional()
       .default("development"),
-    AUTH_EMAIL_SERVER: z.string().url(),
+
     AUTH_EMAIL_FROM: z.string(),
+    AUTH_EMAIL_HOST: z.string(),
+    AUTH_EMAIL_PORT: z.coerce.number(),
+    AUTH_EMAIL_USER: z.string(),
+    AUTH_EMAIL_PASSWORD: z.string(),
   },
   // Prefixed with NEXT_PUBLIC_
   client: {},

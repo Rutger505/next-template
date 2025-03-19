@@ -1,5 +1,6 @@
 import { PostCreate } from "@/app/_components/post-create";
 import { PostList } from "@/app/_components/post-list";
+import { signIn } from "@/server/auth";
 
 export default function Home() {
   return (
@@ -12,6 +13,15 @@ export default function Home() {
             messages for showing usage of these tools
           </h2>
         </div>
+
+        <form
+          action={async () => {
+            "use server";
+            await signIn();
+          }}
+        >
+          <button type="submit">Sign In</button>
+        </form>
 
         <div className={"flex flex-col gap-7"}>
           <PostCreate />
