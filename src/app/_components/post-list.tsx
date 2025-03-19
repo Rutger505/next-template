@@ -1,7 +1,8 @@
 import { Post } from "@/app/_components/post";
 import { api } from "@/trpc/server";
+import { type Session } from "next-auth";
 
-export async function PostList() {
+export async function PostList({ session }: { session: Session | null }) {
   const posts = await api.post.getAll();
 
   return (
@@ -10,7 +11,7 @@ export async function PostList() {
       {posts.length ? (
         <ul className="flex flex-col gap-2">
           {posts.map((post) => (
-            <Post key={post.id} post={post} />
+            <Post key={post.id} post={post} session={session} />
           ))}
         </ul>
       ) : (

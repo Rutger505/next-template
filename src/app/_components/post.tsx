@@ -3,17 +3,22 @@
 import { sendDiscordMessage } from "@/lib/discord";
 import { api } from "@/trpc/react";
 import { type api as serverApi } from "@/trpc/server";
+import { type Session } from "next-auth";
 import { useState } from "react";
 
 export function Post({
   post,
+  session,
 }: {
   post: Awaited<ReturnType<(typeof serverApi.post)["getAll"]>>[number];
+  session: Session | null;
 }) {
-  const [isEditing, setIsEditing] = useState(false);
-  const [draftPostName, setDraftPostName] = useState(post.name); // Local state for the edited value
-
   const updatePostMutation = api.post.update.useMutation();
+  const [isEditing, setIsEditing] = useState(false);
+  const [draftPostName, setDraftPostName] = useState(post.name);
+  const canEdit = session?.user?.id === post.createdById;
+
+  console.log(post.createdById, session?.user?.id);
 
   const handleSave = async () => {
     try {
@@ -47,7 +52,7 @@ export function Post({
       ) : (
         <div className={"flex justify-between"}>
           {post.name}
-          <button onClick={() => setIsEditing(true)}>Edit</button>
+          {canEdit && <button onClick={() => setIsEditing(true)}>Edit</button>}
         </div>
       )}
     </li>

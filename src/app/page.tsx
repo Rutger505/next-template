@@ -43,7 +43,7 @@ export default async function Home() {
         <div className={"flex flex-col gap-7"}>
           {session && <PostCreate />}
 
-          <PostList />
+          <PostList session={session} />
         </div>
       </main>
     </div>
