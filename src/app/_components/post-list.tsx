@@ -1,13 +1,11 @@
-import { PostCreate } from "@/app/_components/post-create";
 import { api } from "@/trpc/server";
 
-export async function Posts() {
+export async function PostList() {
   const posts = await api.post.getAll();
 
   return (
-    <div className="w-full max-w-xs space-y-10">
-      <PostCreate />
-
+    <div>
+      <h2 className="text-2xl font-bold">Posts</h2>
       {posts.length ? (
         <ul className="flex flex-col gap-2">
           {posts.map((post) => (
