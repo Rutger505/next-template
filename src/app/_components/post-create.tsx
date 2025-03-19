@@ -19,6 +19,7 @@ export function PostCreate() {
       }}
       className="flex flex-col gap-2"
     >
+      <h2 className="text-2xl font-bold">Create a post</h2>
       <input
         type="text"
         placeholder="Title"

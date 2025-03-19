@@ -5,8 +5,9 @@ export async function Posts() {
   const posts = await api.post.getAll();
 
   return (
-    <div className="w-full max-w-xs">
+    <div className="w-full max-w-xs space-y-10">
       <PostCreate />
+
       {posts.length ? (
         <ul className="flex flex-col gap-2">
           {posts.map((post) => (
