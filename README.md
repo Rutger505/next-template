@@ -28,7 +28,7 @@ cp .env.example .env
 #### Secrets
 
 - `DEPLOYMENT_AUTH_EMAIL_PASSWORD` - SMTP password (for gmail, this is your app password)
-- `DEPLOYMENT_DISCORD_WEBHOOK_URL` - Discord webhook url for deployment messages
+- `DEPLOYMENT_DISCORD_WEBHOOK_URL` - Discord webhook url for alerts in application
 - `DOCKERHUB_TOKEN` - Dockerhub password
 
 ## Deployments
