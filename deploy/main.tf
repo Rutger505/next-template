@@ -29,9 +29,36 @@ resource "kubernetes_secret" "app" {
   data = var.secrets
 }
 
-# SQLite Database Persistent Volume Claim
+# Persistent Volume for SQLite Database
+resource "kubernetes_persistent_volume" "sqlite_db" {
+  metadata {
+    name = "${var.application_name}-sqlite-pv-${terraform.workspace}"
+  }
+
+  spec {
+    capacity = {
+      storage = "200Mi"
+    }
+
+    access_modes = ["ReadWriteOnce"]
+
+    persistent_volume_reclaim_policy = "Retain"
+
+    persistent_volume_source {
+      host_path {
+        path = "/data/${var.application_name}-sqlite-db-${terraform.workspace}"
+        type = "DirectoryOrCreate"
+      }
+    }
+  }
+}
+
+# Persistent Volume Claim for SQLite Database
 resource "kubernetes_persistent_volume_claim" "sqlite_db" {
-  depends_on = [kubernetes_namespace.app]
+  depends_on = [
+    kubernetes_namespace.app,
+    kubernetes_persistent_volume.sqlite_db
+  ]
 
   metadata {
     name      = "${var.application_name}-sqlite-db"
@@ -46,8 +73,11 @@ resource "kubernetes_persistent_volume_claim" "sqlite_db" {
         storage = "200Mi"
       }
     }
+
+    volume_name = kubernetes_persistent_volume.sqlite_db.metadata[0].name
   }
 }
+
 
 # Deployment
 resource "kubernetes_deployment" "app" {
