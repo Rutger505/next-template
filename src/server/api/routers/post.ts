@@ -6,6 +6,7 @@ import {
   publicProcedure,
 } from "@/server/api/trpc";
 import { posts } from "@/server/db/schema";
+import { eq } from "drizzle-orm";
 
 export const postRouter = createTRPCRouter({
   getAll: publicProcedure.query(async ({ ctx }) => {
@@ -23,5 +24,14 @@ export const postRouter = createTRPCRouter({
         name: input.name,
         createdById: "1",
       });
+    }),
+
+  update: protectedProcedure
+    .input(z.object({ id: z.number(), newName: z.string().min(1) }))
+    .mutation(async ({ ctx, input }) => {
+      await ctx.db
+        .update(posts)
+        .set({ name: input.newName })
+        .where(eq(posts.id, input.id));
     }),
 });

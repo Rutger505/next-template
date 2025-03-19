@@ -19,7 +19,7 @@ export const posts = sqliteTable(
   "post",
   {
     id: int("id", { mode: "number" }).primaryKey({ autoIncrement: true }),
-    name: text("name", { length: 256 }),
+    name: text("name", { length: 256 }).notNull(),
     createdById: text("created_by", { length: 255 })
       .notNull()
       .references(() => users.id),
