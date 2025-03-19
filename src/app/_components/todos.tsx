@@ -1,12 +1,12 @@
-import { PostCreate } from "@/app/_components/post-create";
+import { CreateTodo } from "@/app/_components/create-todo";
 import { api } from "@/trpc/server";
 
-export async function Posts() {
-  const posts = await api.post.getAll();
+export async function Todos() {
+  const posts = await api.todo.getAll();
 
   return (
     <div className="w-full max-w-xs space-y-10">
-      <PostCreate />
+      <CreateTodo />
 
       {posts.length ? (
         <ul className="flex flex-col gap-2">
