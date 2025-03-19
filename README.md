@@ -23,7 +23,7 @@ cp .env.example .env
 
 #### Secrets
 
-- `DEPLOYMENT_DISCORD_WEBHOOK_URL` - Discord webhook url for deployment messages
+- `DEPLOYMENT_DISCORD_WEBHOOK_URL` - Discord webhook url for alerts in application
 - `DOCKERHUB_TOKEN` - Dockerhub password
 -
 
