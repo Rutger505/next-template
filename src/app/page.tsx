@@ -5,8 +5,8 @@ export default function Home() {
   return (
     <div className="flex min-h-screen items-center justify-center">
       <main className={"space-y-10"}>
-        <h1 className="text-center text-4xl font-bold">Hi! </h1>
-        <h2 className={""}>This is a demo app todo app</h2>
+        <h1 className="text-center text-4xl font-bold">Hi!</h1>
+        <h2 className={""}>This is a demo blog app</h2>
 
         <form
           className="flex flex-col items-center gap-4 sm:flex-row"
