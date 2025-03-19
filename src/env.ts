@@ -9,6 +9,8 @@ export const env = createEnv({
       .enum(["development", "test", "production"])
       .optional()
       .default("development"),
+    AUTH_EMAIL_SERVER: z.string().url(),
+    AUTH_EMAIL_FROM: z.string(),
   },
   // Prefixed with NEXT_PUBLIC_
   client: {},
