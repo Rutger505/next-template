@@ -43,11 +43,9 @@ resource "kubernetes_persistent_volume_claim" "sqlite_db" {
 
     resources {
       requests = {
-        storage = "200Mi"  # Adjust size as needed for your database
+        storage = "200Mi"
       }
     }
-
-    storage_class_name = "standard"  # Use your cluster's appropriate storage class
   }
 }
 
