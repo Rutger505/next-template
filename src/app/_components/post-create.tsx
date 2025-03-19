@@ -1,5 +1,6 @@
 "use client";
 
+import { sendDiscordMessage } from "@/lib/discord";
 import { api } from "@/trpc/react";
 import { useState } from "react";
 
@@ -7,6 +8,7 @@ export function PostCreate() {
   const [name, setName] = useState("");
   const createPost = api.post.create.useMutation({
     onSuccess: async () => {
+      await sendDiscordMessage(`New post created: ${name}`);
       setName("");
     },
   });
