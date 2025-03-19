@@ -29,12 +29,38 @@ resource "kubernetes_secret" "app" {
   data = var.secrets
 }
 
+# Persistent Volume Claim for SQLite Database
+resource "kubernetes_persistent_volume_claim" "sqlite_db" {
+  depends_on = [
+    kubernetes_namespace.app,
+  ]
+
+  metadata {
+    name      = "${var.application_name}-sqlite-db"
+    namespace = kubernetes_namespace.app.metadata[0].name
+  }
+
+  spec {
+    access_modes = ["ReadWriteOnce"]
+
+    storage_class_name = "local-path"
+    
+    resources {
+      requests = {
+        storage = "200Mi"
+      }
+    }
+  }
+}
+
+
 # Deployment
 resource "kubernetes_deployment" "app" {
   depends_on = [
     kubernetes_namespace.app,
     kubernetes_config_map.app,
-    kubernetes_secret.app
+    kubernetes_secret.app,
+    kubernetes_persistent_volume_claim.sqlite_db
   ]
 
   metadata {
@@ -91,11 +117,27 @@ resource "kubernetes_deployment" "app" {
               name = kubernetes_secret.app.metadata[0].name
             }
           }
+
+          # Add volume mount for SQLite database
+          volume_mount {
+            name       = "sqlite-data"
+            mount_path = "/app/data/db.sqlite"
+            read_only  = false
+          }
+        }
+
+        # Define the volume that references the PVC
+        volume {
+          name = "sqlite-data"
+          persistent_volume_claim {
+            claim_name = kubernetes_persistent_volume_claim.sqlite_db.metadata[0].name
+          }
         }
       }
     }
   }
 }
+
 
 # Service
 resource "kubernetes_service" "app" {
