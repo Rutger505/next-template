@@ -4,7 +4,7 @@ import { z } from "zod";
 export const env = createEnv({
   server: {
     DISCORD_WEBHOOK_URL: z.string().url(),
-    DATABASE_SQLITE_PATH: z.string(),
+    DATABASE_SQLITE_PATH: z.string().optional().default("./data/db.sqlite"),
     NODE_ENV: z
       .enum(["development", "test", "production"])
       .optional()
