@@ -15,6 +15,7 @@ export function Post({
 }) {
   const updatePostMutation = api.post.update.useMutation();
   const [isEditing, setIsEditing] = useState(false);
+  const [postName, setPostName] = useState(post.name);
   const [draftPostName, setDraftPostName] = useState(post.name);
   const canEdit = session?.user?.id === post.createdById;
 
@@ -26,9 +27,9 @@ export function Post({
         id: post.id,
         newName: draftPostName,
       });
-      setIsEditing(false); // Switch back to view mode after successful save
+      setPostName(draftPostName);
+      setIsEditing(false);
     } catch (error) {
-      // Optionally handle errors, e.g., display an error message
       console.error("Failed to update post:", error);
       await sendDiscordMessage("Failed to update post: " + error?.toString());
     }
@@ -51,7 +52,7 @@ export function Post({
         </div>
       ) : (
         <div className={"flex justify-between"}>
-          {post.name}
+          {postName}
           {canEdit && <button onClick={() => setIsEditing(true)}>Edit</button>}
         </div>
       )}
