@@ -6,6 +6,7 @@ export async function Posts() {
 
   return (
     <div className="w-full max-w-xs">
+      <PostCreate />
       {posts.length ? (
         <ul className="flex flex-col gap-2">
           {posts.map((post) => (
@@ -17,7 +18,6 @@ export async function Posts() {
       ) : (
         <p>No posts yet.</p>
       )}
-      {false && <PostCreate />}
     </div>
   );
 }
