@@ -6,10 +6,14 @@ import { useState } from "react";
 
 export function PostCreate() {
   const [name, setName] = useState("");
+  const utils = api.useUtils();
+
   const createPost = api.post.create.useMutation({
     onSuccess: async () => {
       await sendDiscordMessage(`New post created: ${name}`);
       setName("");
+      // Invalidate the getAll query to refresh the post list
+      await utils.post.getAll.invalidate();
     },
   });
 

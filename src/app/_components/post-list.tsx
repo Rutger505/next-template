@@ -1,9 +1,11 @@
+"use client";
+
 import { Post } from "@/app/_components/post";
-import { api } from "@/trpc/server";
+import { api } from "@/trpc/react"; // Use the React TRPC client
 import { type Session } from "next-auth";
 
-export async function PostList({ session }: { session: Session | null }) {
-  const posts = await api.post.getAll();
+export function PostList({ session }: { session: Session | null }) {
+  const { data: posts = [] } = api.post.getAll.useQuery();
 
   return (
     <div>
