@@ -1,13 +1,8 @@
-"use client";
-
 import { PostCreate } from "@/app/_components/post-create";
-import { api } from "@/trpc/react";
-import { useSession } from "next-auth/react";
+import { api } from "@/trpc/server";
 
-export function Posts() {
-  const { status } = useSession();
-
-  const [posts] = api.post.getAll.useSuspenseQuery();
+export async function Posts() {
+  const posts = await api.post.getAll();
 
   return (
     <div className="w-full max-w-xs">
@@ -22,7 +17,7 @@ export function Posts() {
       ) : (
         <p>No posts yet.</p>
       )}
-      {status === "authenticated" && <PostCreate />}
+      {false && <PostCreate />}
     </div>
   );
 }

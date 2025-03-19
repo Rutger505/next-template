@@ -1,6 +1,7 @@
-import { useState } from "react";
+"use client";
 
 import { api } from "@/trpc/react";
+import { useState } from "react";
 
 export function PostCreate() {
   const utils = api.useUtils();

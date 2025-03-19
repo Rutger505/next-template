@@ -1,10 +1,10 @@
 import { z } from "zod";
 
-import { createTRPCRouter, protectedProcedure } from "@/server/api/trpc";
+import { createTRPCRouter, publicProcedure } from "@/server/api/trpc";
 import { posts } from "@/server/db/schema";
 
 export const postRouter = createTRPCRouter({
-  getAll: protectedProcedure.query(async ({ ctx }) => {
+  getAll: publicProcedure.query(async ({ ctx }) => {
     const posts = await ctx.db.query.posts.findMany({
       orderBy: (posts, { desc }) => [desc(posts.createdAt)],
     });
@@ -12,12 +12,12 @@ export const postRouter = createTRPCRouter({
     return posts ?? null;
   }),
 
-  create: protectedProcedure
+  create: publicProcedure
     .input(z.object({ name: z.string().min(1) }))
     .mutation(async ({ ctx, input }) => {
       await ctx.db.insert(posts).values({
         name: input.name,
-        createdById: ctx.session.user.id,
+        createdById: "1",
       });
     }),
 });
