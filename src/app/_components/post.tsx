@@ -32,14 +32,15 @@ export function Post({
   return (
     <li className="rounded-lg bg-white/10 p-4">
       {isEditing ? (
-        <div>
+        <div className={"flex justify-between gap-2"}>
           <input
+            className={"rounded border-2 px-2 text-black"}
             type="text"
             value={draftPostName}
             onChange={(e) => setDraftPostName(e.target.value)}
           />
-          <button onClick={handleSave} disabled={updatePostMutation.isLoading}>
-            {updatePostMutation.isLoading ? "Saving..." : "Save"}
+          <button onClick={handleSave} disabled={updatePostMutation.isPending}>
+            {updatePostMutation.isPending ? "Saving..." : "Save"}
           </button>
           <button onClick={() => setIsEditing(false)}>Cancel</button>
         </div>
