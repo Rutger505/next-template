@@ -1,4 +1,4 @@
-import { Todos } from "@/app/_components/todos";
+import { Posts } from "@/app/_components/posts";
 import { sendDiscordMessage } from "@/lib/discord";
 
 export default function Home() {
@@ -26,7 +26,7 @@ export default function Home() {
           </button>
         </form>
 
-        <Todos />
+        <Posts />
       </main>
     </div>
   );
