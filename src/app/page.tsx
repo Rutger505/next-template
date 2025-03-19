@@ -1,8 +1,10 @@
 import { PostCreate } from "@/app/_components/post-create";
 import { PostList } from "@/app/_components/post-list";
-import { signIn } from "@/server/auth";
+import { auth, signIn, signOut } from "@/server/auth";
 
-export default function Home() {
+export default async function Home() {
+  const session = await auth();
+
   return (
     <div className="flex min-h-screen flex-col items-center justify-center">
       <main className={"flex flex-col items-center justify-center gap-10"}>
@@ -13,18 +15,33 @@ export default function Home() {
             messages for showing usage of these tools
           </h2>
         </div>
-
-        <form
-          action={async () => {
-            "use server";
-            await signIn();
-          }}
-        >
-          <button type="submit">Sign In</button>
-        </form>
+        {session ? (
+          <div className={"flex flex-col items-center space-y-2.5"}>
+            <span className={"text-center"}>
+              Session: {JSON.stringify(session)}
+            </span>
+            <form
+              action={async () => {
+                "use server";
+                await signOut();
+              }}
+            >
+              <button type="submit">Sign Out</button>
+            </form>
+          </div>
+        ) : (
+          <form
+            action={async () => {
+              "use server";
+              await signIn();
+            }}
+          >
+            <button type="submit">Sign In</button>
+          </form>
+        )}
 
         <div className={"flex flex-col gap-7"}>
-          <PostCreate />
+          {session && <PostCreate />}
 
           <PostList />
         </div>
